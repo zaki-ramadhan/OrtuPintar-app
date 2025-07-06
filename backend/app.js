@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import path from "path";
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 
@@ -18,5 +19,6 @@ app.get("/", (req, res) => {
   res.send("API is running...");
 });
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 export default app;
