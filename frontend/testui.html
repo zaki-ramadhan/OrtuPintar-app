@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0"
+		/>
+		<title>
+			Kitar
+			-
+			Children's
+			Education
+		</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+			rel="stylesheet"
+		/>
+		<style>
+			@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+			body {
+				font-family: "Poppins",
+					sans-serif;
+			}
+			.gradient-bg {
+				background: linear-gradient(
+					135deg,
+					#667eea
+						0%,
+					#764ba2
+						100%
+				);
+			}
+			.card-hover {
+				transition: all
+					0.3s
+					ease;
+			}
+			.card-hover:hover {
+				transform: translateY(
+					-5px
+				);
+				box-shadow: 0
+					20px
+					40px
+					rgba(
+						0,
+						0,
+						0,
+						0.1
+					);
+			}
+			.blob {
+				border-radius: 30%
+					70%
+					70%
+					30% /
+					30%
+					30%
+					70%
+					70%;
+			}
+			.floating {
+				animation: float
+					3s
+					ease-in-out
+					infinite;
+			}
+			@keyframes float {
+				0%,
+				100% {
+					transform: translateY(
+						0px
+					);
+				}
+				50% {
+					transform: translateY(
+						-10px
+					);
+				}
+			}
+		</style>
+	</head>
+	<body class="bg-gray-50">
+		<!-- Navigation -->
+		<nav
+			class="bg-white shadow-lg sticky top-0 z-50"
+		>
+			<div
+				class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+			>
+				<div
+					class="flex justify-between items-center h-16"
+				>
+					<div
+						class="flex items-center"
+					>
+						<div
+							class="flex-shrink-0 flex items-center"
+						>
+							<i
+								class="fas fa-star text-pink-500 text-2xl mr-2"
+							></i>
+							<span
+								class="text-2xl font-bold text-gray-800"
+								>Kitar</span
+							>
+						</div>
+					</div>
+					<div
+						class="hidden md:block"
+					>
+						<div
+							class="ml-10 flex items-baseline space-x-8"
+						>
+							<a
+								href="#"
+								class="text-gray-700 hover:text-pink-500 px-3 py-2 text-sm font-medium"
+								>Home</a
+							>
+							<a
+								href="#"
+								class="text-gray-700 hover:text-pink-500 px-3 py-2 text-sm font-medium"
+								>About
+								Us</a
+							>
+							<a
+								href="#"
+								class="text-gray-700 hover:text-pink-500 px-3 py-2 text-sm font-medium"
+								>Programs</a
+							>
+							<a
+								href="#"
+								class="text-gray-700 hover:text-pink-500 px-3 py-2 text-sm font-medium"
+								>Gallery</a
+							>
+							<a
+								href="#"
+								class="text-gray-700 hover:text-pink-500 px-3 py-2 text-sm font-medium"
+								>Blog</a
+							>
+							<a
+								href="#"
+								class="text-gray-700 hover:text-pink-500 px-3 py-2 text-sm font-medium"
+								>Contact
+								Us</a
+							>
+						</div>
+					</div>
+					<div
+						class="flex items-center"
+					>
+						<button
+							class="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-full text-sm font-medium transition-colors"
+						>
+							Visit
+							Us
+						</button>
+						<button
+							class="md:hidden ml-4 text-gray-700"
+						>
+							<i
+								class="fas fa-bars"
+							></i>
+						</button>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<!-- Hero Section -->
+		<section
+			class="bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 min-h-screen flex items-center relative overflow-hidden"
+		>
+			<div
+				class="absolute inset-0"
+			>
+				<div
+					class="absolute top-20 left-10 w-20 h-20 bg-yellow-300 rounded-full opacity-20 floating"
+				></div>
+				<div
+					class="absolute top-40 right-20 w-16 h-16 bg-pink-300 blob opacity-20 floating"
+					style="
+						animation-delay: 1s;
+					"
+				></div>
+				<div
+					class="absolute bottom-20 left-20 w-24 h-24 bg-blue-300 rounded-full opacity-20 floating"
+					style="
+						animation-delay: 2s;
+					"
+				></div>
+			</div>
+
+			<div
+				class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+			>
+				<div
+					class="text-center lg:text-left"
+				>
+					<h1
+						class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-800 mb-6 leading-tight"
+					>
+						We
+						put
+						a
+						little
+						<span
+							class="text-pink-500"
+							>magic</span
+						>
+						into
+						all
+						our
+						<span
+							class="text-pink-500"
+							>kids'
+							lives</span
+						>
+					</h1>
+					<p
+						class="text-lg text-gray-600 mb-8 max-w-2xl"
+					>
+						At
+						Kitar,
+						we
+						believe
+						every
+						child
+						deserves
+						a
+						magical
+						start
+						to
+						their
+						educational
+						journey.
+						Our
+						innovative
+						programs
+						combine
+						fun
+						and
+						learning
+						to
+						create
+						unforgettable
+						experiences.
+					</p>
+					<div
+						class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+					>
+						<button
+							class="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-full text-lg font-medium transition-colors"
+						>
+							About
+							Us
+						</button>
+						<button
+							class="bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-full text-lg font-medium transition-colors"
+						>
+							Our
+							Vision
+						</button>
+					</div>
+				</div>
+				<div
+					class="relative"
+				>
+					<div
+						class="relative z-10"
+					>
+						<img
+							src="https://images.unsplash.com/photo-1544776527-cb8e271c5d16?w=600&h=600&fit=crop&crop=face"
+							alt="Happy child"
+							class="rounded-3xl shadow-2xl w-full max-w-md mx-auto"
+						/>
+					</div>
+					<div
+						class="absolute top-8 right-8 w-32 h-32 bg-pink-300 rounded-full opacity-30 floating"
+					></div>
+					<div
+						class="absolute bottom-8 left-8 w-24 h-24 bg-yellow-300 blob opacity-30 floating"
+						style="
+							animation-delay: 1s;
+						"
+					></div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Features Section -->
+		<section
+			class="py-20 bg-white"
+		>
+			<div
+				class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+			>
+				<div
+					class="text-center mb-16"
+				>
+					<h2
+						class="text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+					>
+						Welcome
+						To
+						Wonderland
+					</h2>
+					<p
+						class="text-lg text-gray-600 max-w-3xl mx-auto"
+					>
+						At
+						Kitar,
+						we
+						understand
+						that
+						every
+						child
+						is
+						unique
+						and
+						deserves
+						personalized
+						attention.
+						Our
+						comprehensive
+						programs
+						are
+						designed
+						to
+						nurture
+						creativity,
+						build
+						confidence,
+						and
+						foster
+						a
+						love
+						for
+						learning.
+					</p>
+				</div>
+
+				<div
+					class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+				>
+					<div
+						class="text-center p-6 card-hover"
+					>
+						<div
+							class="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4"
+						>
+							<i
+								class="fas fa-graduation-cap text-pink-500 text-2xl"
+							></i>
+						</div>
+						<h3
+							class="text-xl font-semibold text-gray-800 mb-2"
+						>
+							Age-Appropriate
+							Curriculum
+						</h3>
+						<p
+							class="text-gray-600"
+						>
+							Carefully
+							crafted
+							programs
+							that
+							match
+							each
+							child's
+							developmental
+							stage
+							and
+							learning
+							needs.
+						</p>
+					</div>
+
+					<div
+						class="text-center p-6 card-hover"
+					>
+						<div
+							class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4"
+						>
+							<i
+								class="fas fa-users text-orange-500 text-2xl"
+							></i>
+						</div>
+						<h3
+							class="text-xl font-semibold text-gray-800 mb-2"
+						>
+							Teacher
+							Training
+							and
+							Progress
+						</h3>
+						<p
+							class="text-gray-600"
+						>
+							Our
+							qualified
+							educators
+							receive
+							ongoing
+							training
+							to
+							provide
+							the
+							best
+							learning
+							experience.
+						</p>
+					</div>
+
+					<div
+						class="text-center p-6 card-hover"
+					>
+						<div
+							class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
+						>
+							<i
+								class="fas fa-lightbulb text-blue-500 text-2xl"
+							></i>
+						</div>
+						<h3
+							class="text-xl font-semibold text-gray-800 mb-2"
+						>
+							Interactive
+							Learning
+							Methods
+						</h3>
+						<p
+							class="text-gray-600"
+						>
+							Engaging
+							activities
+							and
+							hands-on
+							experiences
+							that
+							make
+							learning
+							fun
+							and
+							memorable.
+						</p>
+					</div>
+
+					<div
+						class="text-center p-6 card-hover"
+					>
+						<div
+							class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
+						>
+							<i
+								class="fas fa-shield-alt text-green-500 text-2xl"
+							></i>
+						</div>
+						<h3
+							class="text-xl font-semibold text-gray-800 mb-2"
+						>
+							Safe
+							and
+							Supportive
+							Territory
+						</h3>
+						<p
+							class="text-gray-600"
+						>
+							A
+							secure
+							environment
+							where
+							children
+							can
+							explore,
+							learn,
+							and
+							grow
+							with
+							confidence.
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Stats Section -->
+		<section
+			class="py-16 bg-pink-500"
+		>
+			<div
+				class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+			>
+				<div
+					class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
+				>
+					<div
+						class="text-white"
+					>
+						<div
+							class="flex items-center justify-center mb-2"
+						>
+							<i
+								class="fas fa-users text-3xl mr-2"
+							></i>
+							<span
+								class="text-4xl font-bold"
+								>750+</span
+							>
+						</div>
+						<p
+							class="text-pink-100"
+						>
+							Happy
+							Students
+						</p>
+					</div>
+					<div
+						class="text-white"
+					>
+						<div
+							class="flex items-center justify-center mb-2"
+						>
+							<i
+								class="fas fa-chalkboard-teacher text-3xl mr-2"
+							></i>
+							<span
+								class="text-4xl font-bold"
+								>28</span
+							>
+						</div>
+						<p
+							class="text-pink-100"
+						>
+							Qualified
+							Teachers
+						</p>
+					</div>
+					<div
+						class="text-white"
+					>
+						<div
+							class="flex items-center justify-center mb-2"
+						>
+							<i
+								class="fas fa-trophy text-3xl mr-2"
+							></i>
+							<span
+								class="text-4xl font-bold"
+								>120+</span
+							>
+						</div>
+						<p
+							class="text-pink-100"
+						>
+							Winning
+							Awards
+						</p>
+					</div>
+					<div
+						class="text-white"
+					>
+						<div
+							class="flex items-center justify-center mb-2"
+						>
+							<i
+								class="fas fa-building text-3xl mr-2"
+							></i>
+							<span
+								class="text-4xl font-bold"
+								>50</span
+							>
+						</div>
+						<p
+							class="text-pink-100"
+						>
+							School
+							Rooms
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Programs Section -->
+		<section
+			class="py-20 bg-gray-50"
+		>
+			<div
+				class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+			>
+				<div
+					class="text-center mb-16"
+				>
+					<h2
+						class="text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+					>
+						Our
+						Kids'
+						Education
+						Proposals
+					</h2>
+					<p
+						class="text-lg text-gray-600 max-w-3xl mx-auto"
+					>
+						Discover
+						our
+						comprehensive
+						range
+						of
+						educational
+						programs
+						designed
+						to
+						nurture
+						young
+						minds
+						and
+						foster
+						holistic
+						development.
+					</p>
+				</div>
+
+				<div
+					class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+				>
+					<div
+						class="bg-white rounded-3xl shadow-lg overflow-hidden card-hover"
+					>
+						<img
+							src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&h=250&fit=crop"
+							alt="Kids Letter Match"
+							class="w-full h-48 object-cover"
+						/>
+						<div
+							class="p-6"
+						>
+							<h3
+								class="text-xl font-semibold text-gray-800 mb-2"
+							>
+								Kids
+								Letter
+								Match
+							</h3>
+							<p
+								class="text-gray-600 mb-4"
+							>
+								Interactive
+								letter
+								recognition
+								and
+								phonics
+								activities
+								that
+								make
+								learning
+								the
+								alphabet
+								fun
+								and
+								engaging.
+							</p>
+							<div
+								class="flex justify-between items-center"
+							>
+								<span
+									class="text-sm text-gray-500"
+									>Age
+									3-5</span
+								>
+								<button
+									class="bg-pink-500 text-white px-4 py-2 rounded-full text-sm hover:bg-pink-600 transition-colors"
+								>
+									Learn
+									More
+								</button>
+							</div>
+						</div>
+					</div>
+
+					<div
+						class="bg-white rounded-3xl shadow-lg overflow-hidden card-hover"
+					>
+						<img
+							src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=400&h=250&fit=crop"
+							alt="Reading & Writing Skills"
+							class="w-full h-48 object-cover"
+						/>
+						<div
+							class="p-6"
+						>
+							<h3
+								class="text-xl font-semibold text-gray-800 mb-2"
+							>
+								Reading
+								&
+								Writing
+								Skills
+							</h3>
+							<p
+								class="text-gray-600 mb-4"
+							>
+								Comprehensive
+								literacy
+								programs
+								that
+								build
+								strong
+								reading
+								and
+								writing
+								foundations
+								through
+								storytelling
+								and
+								creative
+								writing.
+							</p>
+							<div
+								class="flex justify-between items-center"
+							>
+								<span
+									class="text-sm text-gray-500"
+									>Age
+									4-6</span
+								>
+								<button
+									class="bg-blue-500 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-600 transition-colors"
+								>
+									Learn
+									More
+								</button>
+							</div>
+						</div>
+					</div>
+
+					<div
+						class="bg-white rounded-3xl shadow-lg overflow-hidden card-hover"
+					>
+						<img
+							src="https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=400&h=250&fit=crop"
+							alt="Early Childhood Education"
+							class="w-full h-48 object-cover"
+						/>
+						<div
+							class="p-6"
+						>
+							<h3
+								class="text-xl font-semibold text-gray-800 mb-2"
+							>
+								Early
+								Childhood
+								Education
+							</h3>
+							<p
+								class="text-gray-600 mb-4"
+							>
+								Holistic
+								early
+								learning
+								programs
+								that
+								focus
+								on
+								social,
+								emotional,
+								and
+								cognitive
+								development
+								in
+								a
+								nurturing
+								environment.
+							</p>
+							<div
+								class="flex justify-between items-center"
+							>
+								<span
+									class="text-sm text-gray-500"
+									>Age
+									2-4</span
+								>
+								<button
+									class="bg-green-500 text-white px-4 py-2 rounded-full text-sm hover:bg-green-600 transition-colors"
+								>
+									Learn
+									More
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- About Section -->
+		<section
+			class="py-20 bg-white"
+		>
+			<div
+				class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+			>
+				<div
+					class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+				>
+					<div>
+						<h2
+							class="text-3xl md:text-4xl font-bold text-gray-800 mb-6"
+						>
+							Exploring,
+							Learning,
+							Growing
+							Together
+						</h2>
+
+						<div
+							class="space-y-6"
+						>
+							<div
+								class="flex items-start"
+							>
+								<div
+									class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center mr-4 mt-1"
+								>
+									<i
+										class="fas fa-question text-pink-500"
+									></i>
+								</div>
+								<div>
+									<h3
+										class="text-lg font-semibold text-gray-800 mb-2"
+									>
+										Do
+										you
+										offer
+										parent-teacher
+										conferences?
+									</h3>
+									<p
+										class="text-gray-600"
+									>
+										Yes,
+										we
+										hold
+										regular
+										parent-teacher
+										conferences
+										to
+										discuss
+										your
+										child's
+										progress
+										and
+										development
+										milestones.
+									</p>
+								</div>
+							</div>
+
+							<div
+								class="flex items-start"
+							>
+								<div
+									class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center mr-4 mt-1"
+								>
+									<i
+										class="fas fa-question text-pink-500"
+									></i>
+								</div>
+								<div>
+									<h3
+										class="text-lg font-semibold text-gray-800 mb-2"
+									>
+										What
+										is
+										your
+										educational
+										philosophy?
+									</h3>
+									<p
+										class="text-gray-600"
+									>
+										We
+										believe
+										in
+										child-centered
+										learning
+										that
+										respects
+										each
+										child's
+										natural
+										curiosity
+										and
+										individual
+										pace
+										of
+										development.
+									</p>
+								</div>
+							</div>
+
+							<div
+								class="flex items-start"
+							>
+								<div
+									class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center mr-4 mt-1"
+								>
+									<i
+										class="fas fa-question text-pink-500"
+									></i>
+								</div>
+								<div>
+									<h3
+										class="text-lg font-semibold text-gray-800 mb-2"
+									>
+										What
+										is
+										the
+										teacher-to-child
+										ratio?
+									</h3>
+									<p
+										class="text-gray-600"
+									>
+										We
+										maintain
+										low
+										teacher-to-child
+										ratios
+										to
+										ensure
+										personalized
+										attention
+										and
+										quality
+										interaction
+										with
+										each
+										student.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div
+						class="relative"
+					>
+						<div
+							class="rounded-3xl overflow-hidden shadow-2xl"
+						>
+							<img
+								src="https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=600&h=400&fit=crop"
+								alt="Children learning together"
+								class="w-full h-96 object-cover"
+							/>
+						</div>
+						<div
+							class="absolute -top-4 -right-4 w-24 h-24 bg-yellow-300 rounded-full opacity-30 floating"
+						></div>
+						<div
+							class="absolute -bottom-4 -left-4 w-20 h-20 bg-pink-300 blob opacity-30 floating"
+							style="
+								animation-delay: 1s;
+							"
+						></div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Teachers Section -->
+		<section
+			class="py-20 bg-gray-50"
+		>
+			<div
+				class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+			>
+				<div
+					class="text-center mb-16"
+				>
+					<h2
+						class="text-3xl md:text-4xl font-bold text-gray-800 mb-4"
+					>
+						Meet
+						Our
+						Instructors
+					</h2>
+					<p
+						class="text-lg text-gray-600 max-w-3xl mx-auto"
+					>
+						Our
+						dedicated
+						team
+						of
+						qualified
+						educators
+						brings
+						passion,
+						expertise,
+						and
+						care
+						to
+						every
+						classroom
+						interaction.
+					</p>
+				</div>
+
+				<div
+					class="grid grid-cols-1 md:grid-cols-3 gap-8"
+				>
+					<div
+						class="bg-white rounded-3xl shadow-lg overflow-hidden card-hover text-center"
+					>
+						<img
+							src="https://images.unsplash.com/photo-1594824880315-29c467b3c6c2?w=300&h=300&fit=crop&crop=face"
+							alt="Teacher 1"
+							class="w-full h-64 object-cover"
+						/>
+						<div
+							class="p-6"
+						>
+							<h3
+								class="text-xl font-semibold text-gray-800 mb-2"
+							>
+								Sarah
+								Johnson
+							</h3>
+							<p
+								class="text-pink-500 font-medium mb-2"
+							>
+								Lead
+								Early
+								Childhood
+								Educator
+							</p>
+							<p
+								class="text-gray-600 text-sm"
+							>
+								M.Ed
+								in
+								Early
+								Childhood
+								Education
+								with
+								8
+								years
+								of
+								experience
+								in
+								nurturing
+								young
+								minds.
+							</p>
+						</div>
+					</div>
+
+					<div
+						class="bg-white rounded-3xl shadow-lg overflow-hidden card-hover text-center"
+					>
+						<img
+							src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face"
+							alt="Teacher 2"
+							class="w-full h-64 object-cover"
+						/>
+						<div
+							class="p-6"
+						>
+							<h3
+								class="text-xl font-semibold text-gray-800 mb-2"
+							>
+								Michael
+								Chen
+							</h3>
+							<p
+								class="text-blue-500 font-medium mb-2"
+							>
+								STEM
+								Learning
+								Specialist
+							</p>
+							<p
+								class="text-gray-600 text-sm"
+							>
+								Specialized
+								in
+								making
+								science
+								and
+								math
+								fun
+								through
+								hands-on
+								experiments
+								and
+								interactive
+								learning.
+							</p>
+						</div>
+					</div>
+
+					<div
+						class="bg-white rounded-3xl shadow-lg overflow-hidden card-hover text-center"
+					>
+						<img
+							src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face"
+							alt="Teacher 3"
+							class="w-full h-64 object-cover"
+						/>
+						<div
+							class="p-6"
+						>
+							<h3
+								class="text-xl font-semibold text-gray-800 mb-2"
+							>
+								Emily
+								Rodriguez
+							</h3>
+							<p
+								class="text-green-500 font-medium mb-2"
+							>
+								Creative
+								Arts
+								Coordinator
+							</p>
+							<p
+								class="text-gray-600 text-sm"
+							>
+								Bringing
+								creativity
+								to
+								life
+								through
+								art,
+								music,
+								and
+								dramatic
+								play
+								activities
+								for
+								holistic
+								development.
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Footer -->
+		<footer
+			class="bg-gray-800 text-white py-12"
+		>
+			<div
+				class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+			>
+				<div
+					class="grid grid-cols-1 md:grid-cols-4 gap-8"
+				>
+					<div>
+						<div
+							class="flex items-center mb-4"
+						>
+							<i
+								class="fas fa-star text-pink-500 text-2xl mr-2"
+							></i>
+							<span
+								class="text-2xl font-bold"
+								>Kitar</span
+							>
+						</div>
+						<p
+							class="text-gray-400 mb-4"
+						>
+							Creating
+							magical
+							learning
+							experiences
+							for
+							children
+							and
+							fostering
+							their
+							natural
+							curiosity
+							and
+							creativity.
+						</p>
+						<div
+							class="flex space-x-4"
+						>
+							<a
+								href="#"
+								class="text-gray-400 hover:text-white transition-colors"
+							>
+								<i
+									class="fab fa-facebook-f"
+								></i>
+							</a>
+							<a
+								href="#"
+								class="text-gray-400 hover:text-white transition-colors"
+							>
+								<i
+									class="fab fa-twitter"
+								></i>
+							</a>
+							<a
+								href="#"
+								class="text-gray-400 hover:text-white transition-colors"
+							>
+								<i
+									class="fab fa-instagram"
+								></i>
+							</a>
+							<a
+								href="#"
+								class="text-gray-400 hover:text-white transition-colors"
+							>
+								<i
+									class="fab fa-youtube"
+								></i>
+							</a>
+						</div>
+					</div>
+
+					<div>
+						<h3
+							class="text-lg font-semibold mb-4"
+						>
+							Quick
+							Links
+						</h3>
+						<ul
+							class="space-y-2"
+						>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>About
+									Us</a
+								>
+							</li>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>Programs</a
+								>
+							</li>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>Admissions</a
+								>
+							</li>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>Gallery</a
+								>
+							</li>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>Contact</a
+								>
+							</li>
+						</ul>
+					</div>
+
+					<div>
+						<h3
+							class="text-lg font-semibold mb-4"
+						>
+							Programs
+						</h3>
+						<ul
+							class="space-y-2"
+						>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>Early
+									Childhood</a
+								>
+							</li>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>Kindergarten</a
+								>
+							</li>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>After
+									School</a
+								>
+							</li>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>Summer
+									Camp</a
+								>
+							</li>
+							<li>
+								<a
+									href="#"
+									class="text-gray-400 hover:text-white transition-colors"
+									>Special
+									Needs</a
+								>
+							</li>
+						</ul>
+					</div>
+
+					<div>
+						<h3
+							class="text-lg font-semibold mb-4"
+						>
+							Contact
+							Info
+						</h3>
+						<div
+							class="space-y-2 text-gray-400"
+						>
+							<p>
+								<i
+									class="fas fa-map-marker-alt mr-2"
+								></i
+								>123
+								Learning
+								Street,
+								Education
+								City
+							</p>
+							<p>
+								<i
+									class="fas fa-phone mr-2"
+								></i
+								>+1
+								(555)
+								123-4567
+							</p>
+							<p>
+								<i
+									class="fas fa-envelope mr-2"
+								></i
+								>info@kitar.edu
+							</p>
+							<p>
+								<i
+									class="fas fa-clock mr-2"
+								></i
+								>Mon-Fri:
+								7:00
+								AM
+								-
+								6:00
+								PM
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<div
+					class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400"
+				>
+					<p>
+						&copy;
+						2025
+						Kitar
+						Children's
+						Education.
+						All
+						rights
+						reserved.
+					</p>
+				</div>
+			</div>
+		</footer>
+
+		<script>
+			// Mobile menu toggle
+			const mobileMenuButton =
+				document.querySelector(
+					".md\\:hidden"
+				);
+			const mobileMenu =
+				document.createElement(
+					"div"
+				);
+			mobileMenu.className =
+				"md:hidden fixed inset-0 bg-white z-50 transform translate-x-full transition-transform";
+			mobileMenu.innerHTML = `
+            <div class="p-4">
+                <button class="float-right text-2xl" onclick="toggleMobileMenu()">&times;</button>
+                <div class="clear-both mt-8 space-y-4">
+                    <a href="#" class="block py-2 text-gray-700">Home</a>
+                    <a href="#" class="block py-2 text-gray-700">About Us</a>
+                    <a href="#" class="block py-2 text-gray-700">Programs</a>
+                    <a href="#" class="block py-2 text-gray-700">Gallery</a>
+                    <a href="#" class="block py-2 text-gray-700">Blog</a>
+                    <a href="#" class="block py-2 text-gray-700">Contact Us</a>
+                </div>
+            </div>
+        `;
+			document.body.appendChild(
+				mobileMenu
+			);
+
+			function toggleMobileMenu() {
+				mobileMenu.classList.toggle(
+					"translate-x-full"
+				);
+			}
+
+			mobileMenuButton.addEventListener(
+				"click",
+				toggleMobileMenu
+			);
+
+			// Smooth scrolling for anchor links
+			document.querySelectorAll(
+				'a[href^="#"]'
+			).forEach(
+				(
+					anchor
+				) => {
+					anchor.addEventListener(
+						"click",
+						function (
+							e
+						) {
+							e.preventDefault();
+							const target =
+								document.querySelector(
+									this.getAttribute(
+										"href"
+									)
+								);
+							if (
+								target
+							) {
+								target.scrollIntoView(
+									{
+										behavior: "smooth",
+									}
+								);
+							}
+						}
+					);
+				}
+			);
+
+			// Add scroll effect to navigation
+			window.addEventListener(
+				"scroll",
+				() => {
+					const nav =
+						document.querySelector(
+							"nav"
+						);
+					if (
+						window.scrollY >
+						50
+					) {
+						nav.classList.add(
+							"shadow-xl"
+						);
+					} else {
+						nav.classList.remove(
+							"shadow-xl"
+						);
+					}
+				}
+			);
+		</script>
+	</body>
+</html>
