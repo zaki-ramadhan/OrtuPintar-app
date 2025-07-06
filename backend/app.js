@@ -4,6 +4,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 dotenv.config();
 import path from "path";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -16,5 +17,6 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
+app.use("/api/auth", authRoutes);
 
 export default app;
