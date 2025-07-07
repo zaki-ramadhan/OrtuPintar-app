@@ -2,23 +2,27 @@ import { db } from "../config/db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-// Helper generate JWT token
+// Helper untuk generate JWT token
 const generateToken = (user) => {
+  console.log("🚀 Generating token for:", user);
+  const secret = process.env.JWT_SECRET;
+  console.log("✅ JWT_SECRET:", secret);
   return jwt.sign(
     {
       id: user.id,
       role: user.role,
     },
-    process.env.JWT_SECRET,
+    secret,
     {
       expiresIn: process.env.JWT_EXPIRES_IN || "1d",
     }
   );
 };
 
-// Login Users
+// 🔑 LOGIN USER
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  console.log("🔑 LoginUser request body:", req.body);
 
   if (!email || !password) {
     return res.status(400).json({ message: "Email dan Password wajib diisi." });
@@ -36,6 +40,8 @@ export const loginUser = async (req, res) => {
       [email]
     );
 
+    console.log("🗂️ DB rows:", rows);
+
     if (rows.length === 0) {
       return res
         .status(401)
@@ -43,16 +49,18 @@ export const loginUser = async (req, res) => {
     }
 
     const user = rows[0];
+    console.log("👤 Found user:", user);
 
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log("🔑 Password match:", isMatch);
+
     if (!isMatch) {
       return res.status(401).json({ message: "Password salah." });
     }
 
-    // Buat token
     const token = generateToken(user);
+    console.log("✅ Generated Token:", token);
 
-    // Jangan return password
     const { password: userPassword, ...userData } = user;
 
     return res.json({
@@ -61,14 +69,15 @@ export const loginUser = async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error("Login users error:", err);
+    console.error("❌ Login users error:", err);
     return res.status(500).json({ message: "Terjadi kesalahan sistem." });
   }
 };
 
-// Login Admin
+// 🔑 LOGIN ADMIN
 export const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
+  console.log("🔑 LoginAdmin request body:", req.body);
 
   if (!email || !password) {
     return res.status(400).json({ message: "Email dan Password wajib diisi." });
@@ -80,6 +89,8 @@ export const loginAdmin = async (req, res) => {
       [email]
     );
 
+    console.log("🗂️ DB rows:", rows);
+
     if (rows.length === 0) {
       return res
         .status(401)
@@ -87,13 +98,18 @@ export const loginAdmin = async (req, res) => {
     }
 
     const user = rows[0];
+    console.log("👤 Found admin:", user);
 
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log("🔑 Password match:", isMatch);
+
     if (!isMatch) {
       return res.status(401).json({ message: "Password salah." });
     }
 
     const token = generateToken(user);
+    console.log("✅ Generated Token:", token);
+
     const { password: userPassword, ...userData } = user;
 
     return res.json({
@@ -102,15 +118,16 @@ export const loginAdmin = async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error("Login admin error:", err);
+    console.error("❌ Login admin error:", err);
     return res.status(500).json({ message: "Terjadi kesalahan sistem." });
   }
 };
 
+// 📝 REGISTER USER
 export const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
+  console.log("📝 Register request body:", req.body);
 
-  // 1. Validasi input
   if (!name || !email || !password) {
     return res.status(400).json({ message: "Semua field wajib diisi." });
   }
@@ -120,26 +137,28 @@ export const registerUser = async (req, res) => {
   }
 
   try {
-    // 2. Cek email sudah terdaftar belum
     const [existing] = await db.query("SELECT id FROM users WHERE email = ?", [
       email,
     ]);
+
+    console.log("🗂️ Existing check:", existing);
 
     if (existing.length > 0) {
       return res.status(409).json({ message: "Email sudah terdaftar." });
     }
 
-    // 3. Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // 4. Insert user baru
+    console.log("🔒 Hashed password:", hashedPassword);
+
     const [result] = await db.query(
       "INSERT INTO users (name, email, password, role, created_at) VALUES (?, ?, ?, ?, NOW())",
       [name, email, hashedPassword, "users"]
     );
 
-    // 5. Ambil user ID
+    console.log("✅ Insert result:", result);
+
     const userId = result.insertId;
 
     const user = {
@@ -149,21 +168,16 @@ export const registerUser = async (req, res) => {
       role: "users",
     };
 
-    // 6. Generate token
-    const token = jwt.sign(
-      { id: userId, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "1d" }
-    );
+    const token = generateToken(user);
+    console.log("✅ Generated Token:", token);
 
-    // 7. Return response
     return res.status(201).json({
       message: "Registrasi berhasil.",
       user,
       token,
     });
   } catch (err) {
-    console.error("Register error:", err);
+    console.error("❌ Register error:", err);
     return res.status(500).json({ message: "Terjadi kesalahan sistem." });
   }
 };

@@ -6,6 +6,7 @@ dotenv.config();
 import path from "path";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import childRoutes from "./routes/childRoutes.js";
 
 const app = express();
 
@@ -20,5 +21,6 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/children", childRoutes);
 
 export default app;

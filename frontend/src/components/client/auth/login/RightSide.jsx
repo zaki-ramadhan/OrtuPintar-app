@@ -22,8 +22,12 @@ export default function RightSide() {
         password,
       });
 
-      const { user } = response.data;
+      const { user, token } = response.data; // << Ambil token dari response
+      console.log("✅ Login Token:", token); // Debug biar kelihatan di console
+
+      // Simpan user & token
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token); // << Tambahkan ini!
 
       toast.success("Login berhasil! Tunggu sebentar...");
       setTimeout(() => {

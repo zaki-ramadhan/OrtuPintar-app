@@ -113,21 +113,25 @@ export default function AddChildModal({ onClose, onAddChild }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
     setIsSubmitting(true);
-
-    if (validateForm()) {
-      try {
-        const childData = {
-          ...formData,
-          age: calculateAge(formData.birthDate),
-          nextMilestone: formData.nextMilestone || "First milestone tracking",
-        };
-
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-        onAddChild(childData);
-      } catch (error) {
-        console.error("Error adding child:", error);
-      }
+    try {
+      await onAddChild({
+        name: formData.name,
+        birthDate: formData.birthDate,
+        gender: formData.gender, // 'male' atau 'female'
+        avatar: formData.avatar,
+      });
+      // ✅ Tidak ada alert di sini
+      // ✅ Tidak ada onClose di sini
+      // HomePage akan handle toast, update state & close modal
+    } catch (error) {
+      console.error("Error adding child:", error);
+      // Toast error juga sebaiknya di HomePage biar konsisten
     }
     setIsSubmitting(false);
   };

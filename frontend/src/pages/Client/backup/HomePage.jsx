@@ -14,8 +14,6 @@ import { Link, useNavigate } from "react-router";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 export default function HomePage() {
   const [activeChild, setActiveChild] = useState(0);
   const [selectedTab, setSelectedTab] = useState("overview");
@@ -24,27 +22,7 @@ export default function HomePage() {
   const [activities, setActivities] = useState([]);
   const [children, setChildren] = useState([]);
   const [showAddChildModal, setShowAddChildModal] = useState(false);
-
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchChildren = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        const response = await axios.get(`${API_URL}/children`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log("Children API response:", response.data);
-
-        setChildren(response.data.children || []); // ← fallback kalau undefined
-      } catch (err) {
-        console.error("Error fetching children:", err);
-        setChildren([]); // fallback biar gak undefined
-      }
-    };
-
-    fetchChildren();
-  }, []);
 
   useEffect(() => {
     // Initialize data (same as before)
@@ -125,41 +103,108 @@ export default function HomePage() {
         description: "Learn shapes while having fun sorting and matching",
       },
     ]);
+
+    setChildren([
+      {
+        id: 1,
+        name: "Emma",
+        age: "3 years, 2 months",
+        avatar: "👧",
+        nextMilestone: "Drawing circles",
+        progress: 85,
+        recentAchievement: "Learned to count to 10",
+        developmentAreas: [
+          {
+            name: "Physical",
+            progress: 90,
+            color: "emerald",
+          },
+          {
+            name: "Cognitive",
+            progress: 85,
+            color: "blue",
+          },
+          {
+            name: "Social",
+            progress: 78,
+            color: "purple",
+          },
+          {
+            name: "Language",
+            progress: 92,
+            color: "orange",
+          },
+        ],
+      },
+      {
+        id: 2,
+        name: "Alex",
+        age: "1 year, 8 months",
+        avatar: "👶",
+        nextMilestone: "First two-word sentences",
+        progress: 70,
+        recentAchievement: "Started walking independently",
+        developmentAreas: [
+          {
+            name: "Physical",
+            progress: 95,
+            color: "emerald",
+          },
+          {
+            name: "Cognitive",
+            progress: 65,
+            color: "blue",
+          },
+          {
+            name: "Social",
+            progress: 72,
+            color: "purple",
+          },
+          {
+            name: "Language",
+            progress: 60,
+            color: "orange",
+          },
+        ],
+      },
+    ]);
   }, []);
 
-  const handleAddChild = async (childData) => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await axios.post(
-        `${API_URL}/children`,
+  // Handler functions (same as before)
+  const handleAddChild = (newChildData) => {
+    const newChild = {
+      id: children.length + 1,
+      ...newChildData,
+      progress: 0,
+      recentAchievement: "Just getting started!",
+      developmentAreas: [
         {
-          name: childData.name,
-          birthDate: childData.birthDate,
-          gender: childData.gender === "male" ? "L" : "P",
-          photoUrl: childData.avatar,
+          name: "Physical",
+          progress: 0,
+          color: "emerald",
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+          name: "Cognitive",
+          progress: 0,
+          color: "blue",
+        },
+        {
+          name: "Social",
+          progress: 0,
+          color: "purple",
+        },
+        {
+          name: "Language",
+          progress: 0,
+          color: "orange",
+        },
+      ],
+    };
 
-      const newChild = response.data.child;
-
-      // Update state children
-      setChildren((prev) => [...prev, newChild]);
-
-      // Show toast success
-      toast.success("Child added successfully!");
-
-      // Tutup modal
-      setShowAddChildModal(false);
-    } catch (err) {
-      console.error("Add child error:", err);
-      toast.error(err.response?.data?.message || "Failed to add child.");
-    }
+    setChildren((prev) => [...prev, newChild]);
+    setShowAddChildModal(false);
+    toast.success(`${newChildData.name} has been added successfully!`);
+    setActiveChild(children.length);
   };
 
   const handleMarkAsRead = (notificationId) => {
@@ -189,8 +234,7 @@ export default function HomePage() {
   const unreadNotifications = notifications.filter(
     (notification) => !notification.read
   );
-  //   const currentChild = children[activeChild];
-  const currentChild = children[activeChild] || null;
+  const currentChild = children[activeChild];
 
   return (
     <div className="min-h-screen bg-gray-50">
