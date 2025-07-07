@@ -6,6 +6,7 @@ import LoginPage from "@/pages/Client/LoginPage";
 import DashboardPage from "@/pages/Admin/DashboardPage";
 import RegisterPage from '@/pages/Client/RegisterPage';
 import AdminLoginPage from '@/pages/Admin/AdminLoginPage';
+import UserAccount from "./pages/Client/UserAccount";
 
 const router = createBrowserRouter([
 	{
@@ -25,8 +26,8 @@ const router = createBrowserRouter([
 		element: <RegisterPage />,
 	},
 	{
-		path: "/dashboard",
-		element: <DashboardPage />,
+		path: "/my-account",
+		element: <UserAccount />,
 	},
 	{
 		path: "/back/login",

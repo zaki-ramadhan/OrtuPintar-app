@@ -10,7 +10,7 @@ export default function RegisterPage() {
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-purple-200/30 to-pink-200/30 rounded-full blur-3xl animate-pulse"></div>
       </div>
 
-      <div className="relative z-10 min-h-screen flex">
+      <div className="relative z-10 min-h-screen flex justify-start items-start">
         {/* Left Side - Branding */}
         <LeftSide />
 

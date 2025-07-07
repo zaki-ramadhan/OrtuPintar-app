@@ -44,7 +44,7 @@ export default function LeftSide() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-center space-y-8">
+      <div className="flex-1 flex flex-col justify-center space-y-8 pt-10">
         <div className="space-y-6">
           <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
             Start Your{" "}
