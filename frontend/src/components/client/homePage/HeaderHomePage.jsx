@@ -49,7 +49,7 @@ export default function HeaderHomePage() {
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors"
+                className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-colors cursor-pointer"
               >
                 <span className="text-white text-sm font-medium">👩</span>
               </button>
