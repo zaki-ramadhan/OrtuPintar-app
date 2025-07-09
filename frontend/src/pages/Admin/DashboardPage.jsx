@@ -34,6 +34,30 @@ export default function DashboardPage() {
 	const [activeTab, setActiveTab] =
 		useState("overview");
 	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const [notificationOpen, setNotificationOpen] =
+		useState(false);
+	const [notifications, setNotifications] = useState([
+		{
+			message: "New user registered: Sarah Johnson",
+			time: "2 minutes ago",
+			read: false,
+		},
+		{
+			message: "Milestone achieved by child Emma Chen",
+			time: "15 minutes ago",
+			read: false,
+		},
+		{
+			message: "Consultation booked with Dr. Smith",
+			time: "1 hour ago",
+			read: false,
+		},
+		{
+			message: "System maintenance completed",
+			time: "3 hours ago",
+			read: true,
+		},
+	]);
 
 	const {
 		confirmModal,
@@ -82,6 +106,19 @@ export default function DashboardPage() {
 		);
 		navigate("/back/login");
 		setLogoutModal(false);
+	};
+
+	const onReadNotifications = () => {
+		setNotifications((prev) =>
+			prev.map(
+				(
+					n
+				) => ({
+					...n,
+					read: true,
+				})
+			)
+		);
 	};
 
 	// CRUD operations
@@ -148,6 +185,18 @@ export default function DashboardPage() {
 				}
 				setSidebarOpen={
 					setSidebarOpen
+				}
+				notificationOpen={
+					notificationOpen
+				}
+				setNotificationOpen={
+					setNotificationOpen
+				}
+				notifications={
+					notifications
+				}
+				onReadNotifications={
+					onReadNotifications
 				}
 			/>
 			{/* Navigation Tabs */}
