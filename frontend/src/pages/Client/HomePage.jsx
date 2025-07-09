@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import ChildSelector from "@/components/client/homePage/ChildSelector";
 import CurrentChildOverview from "@/components/client/homePage/CurrentChildOverview";

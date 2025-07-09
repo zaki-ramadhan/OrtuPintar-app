@@ -92,25 +92,88 @@ export default function LeftSide() {
 						development
 						platform.
 					</p>
-				</div>
-
+				</div>{" "}
 				{/* Admin Features Preview */}
 				<div className="space-y-4">
 					{[
 						{
-							icon: "👥",
+							icon: (
+								<svg
+									className="w-6 h-6 text-purple-600"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={
+											2
+										}
+										d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+									/>
+								</svg>
+							),
 							text: "User Management & Analytics",
 						},
 						{
-							icon: "📊",
+							icon: (
+								<svg
+									className="w-6 h-6 text-purple-600"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={
+											2
+										}
+										d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+									/>
+								</svg>
+							),
 							text: "System Performance Monitoring",
 						},
 						{
-							icon: "🎯",
+							icon: (
+								<svg
+									className="w-6 h-6 text-purple-600"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={
+											2
+										}
+										d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+									/>
+								</svg>
+							),
 							text: "Content & Activity Management",
 						},
 						{
-							icon: "🔒",
+							icon: (
+								<svg
+									className="w-6 h-6 text-purple-600"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={
+											2
+										}
+										d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+									/>
+								</svg>
+							),
 							text: "Security & Access Control",
 						},
 					].map(
@@ -124,11 +187,9 @@ export default function LeftSide() {
 								}
 								className="flex items-center space-x-3"
 							>
-								<span className="text-2xl">
-									{
-										feature.icon
-									}
-								</span>
+								{
+									feature.icon
+								}
 								<span className="text-gray-700 font-medium">
 									{
 										feature.text
