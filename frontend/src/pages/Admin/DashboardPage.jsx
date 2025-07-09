@@ -33,6 +33,7 @@ export default function DashboardPage() {
 	const [logoutModal, setLogoutModal] = useState(false);
 	const [activeTab, setActiveTab] =
 		useState("overview");
+	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const {
 		confirmModal,
@@ -142,6 +143,12 @@ export default function DashboardPage() {
 				user={
 					user
 				}
+				sidebarOpen={
+					sidebarOpen
+				}
+				setSidebarOpen={
+					setSidebarOpen
+				}
 			/>
 			{/* Navigation Tabs */}
 			<NavigationTabs
@@ -150,6 +157,12 @@ export default function DashboardPage() {
 				}
 				setActiveTab={
 					setActiveTab
+				}
+				sidebarOpen={
+					sidebarOpen
+				}
+				setSidebarOpen={
+					setSidebarOpen
 				}
 			/>
 			{/* Main Content */}

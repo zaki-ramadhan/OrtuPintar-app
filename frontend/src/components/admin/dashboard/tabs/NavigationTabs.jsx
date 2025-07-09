@@ -1,9 +1,11 @@
-import { useState } from "react";
-// import { useNavigate } from "react-router";
+import React from "react";
 
-export default function NavigationTabs({ activeTab, setActiveTab }) {
-	const [sidebarOpen, setSidebarOpen] = useState(false);
-
+export default function NavigationTabs({
+	activeTab,
+	setActiveTab,
+	sidebarOpen,
+	setSidebarOpen,
+}) {
 	const tabs = [
 		{
 			id: "overview",

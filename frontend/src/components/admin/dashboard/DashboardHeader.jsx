@@ -1,8 +1,10 @@
 import React from "react";
-export default function DashboardHeader({ setLogoutModal, user }) {
-	const [sidebarOpen, setSidebarOpen] =
-		React.useState(false);
-
+export default function DashboardHeader({
+	setLogoutModal,
+	user,
+	sidebarOpen,
+	setSidebarOpen,
+}) {
 	const handleLogout = () => {
 		setLogoutModal(true);
 	};
