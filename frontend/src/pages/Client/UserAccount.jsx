@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import toast from "react-hot-toast";
+import LogoutModal from "@/components/client/homePage/LogoutModal";
 
 export default function UserAccount() {
 	const navigate = useNavigate();
@@ -61,6 +62,8 @@ export default function UserAccount() {
 	});
 
 	const [user, setUser] = useState(null);
+	const [showLogoutModal, setShowLogoutModal] =
+		useState(false);
 
 	useEffect(() => {
 		const userData = JSON.parse(
@@ -232,8 +235,10 @@ export default function UserAccount() {
 								Home
 							</Link>
 							<button
-								onClick={
-									handleLogout
+								onClick={() =>
+									setShowLogoutModal(
+										true
+									)
 								}
 								className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
 							>
@@ -1190,6 +1195,20 @@ export default function UserAccount() {
 					</div>
 				)}
 			</div>
+
+			<LogoutModal
+				open={
+					showLogoutModal
+				}
+				onClose={() =>
+					setShowLogoutModal(
+						false
+					)
+				}
+				onLogout={
+					handleLogout
+				}
+			/>
 		</div>
 	);
 }
