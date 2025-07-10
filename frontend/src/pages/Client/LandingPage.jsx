@@ -1,17 +1,22 @@
 import TopBar from "@/components/client/TopBar";
 import HeroSection from "@/components/client/HeroSection";
-import SocialProofSection from '@/components/client/SocialProofSection';
-import StatsSection from '@/components/client/StatsSection';
-import FeaturesSection from '@/components/client/FeaturesSection';
-import DevelopmentSection from '@/components/client/DevelopmentSection';
-import HowItWorksSection from '@/components/client/HowItWorksSection';
-import TestimonialsSection from '@/components/client/TestimonialsSection';
-import PricingSection from '@/components/client/PricingSection';
-import FaqSection from '@/components/client/FaqSection';
-import ExpertSupportSection from '@/components/client/ExpertSupportSection';
-import Footer from '@/components/client/Footer';
+import SocialProofSection from "@/components/client/SocialProofSection";
+import StatsSection from "@/components/client/StatsSection";
+import FeaturesSection from "@/components/client/FeaturesSection";
+import DevelopmentSection from "@/components/client/DevelopmentSection";
+import HowItWorksSection from "@/components/client/HowItWorksSection";
+import TestimonialsSection from "@/components/client/TestimonialsSection";
+import PricingSection from "@/components/client/PricingSection";
+import FaqSection from "@/components/client/FaqSection";
+import ExpertSupportSection from "@/components/client/ExpertSupportSection";
+import Footer from "@/components/client/Footer";
+import { useEffect } from "react";
 
 export default function LandingPage() {
+	useEffect(() => {
+		document.title =
+			"OrtuPintar - Smart Parenting Platform";
+	}, []);
 
 	return (
 		<div className="min-h-screen bg-white">
@@ -22,34 +27,34 @@ export default function LandingPage() {
 			<HeroSection />
 
 			{/* Social Proof Section */}
-			<SocialProofSection/>
+			<SocialProofSection />
 
 			{/* Stats Section */}
-			<StatsSection/>
+			<StatsSection />
 
 			{/* Features Section - ADD ID HERE */}
-			<FeaturesSection/>
+			<FeaturesSection />
 
 			{/* Development Areas Section - ADD ID HERE */}
-			<DevelopmentSection/>
+			<DevelopmentSection />
 
 			{/* How It Works Section */}
-			<HowItWorksSection/>
+			<HowItWorksSection />
 
 			{/* Testimonials Section - ADD ID HERE */}
-			<TestimonialsSection/>
+			<TestimonialsSection />
 
 			{/* Pricing Section - ADD ID HERE */}
-			<PricingSection/>
+			<PricingSection />
 
 			{/* FAQ Section */}
-			<FaqSection/>
+			<FaqSection />
 
 			{/* Expert Support Section - ADD ID HERE */}
-			<ExpertSupportSection/>
+			<ExpertSupportSection />
 
 			{/* Footer */}
-			<Footer/>
+			<Footer />
 		</div>
 	);
 }

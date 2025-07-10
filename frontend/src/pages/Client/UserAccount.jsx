@@ -66,6 +66,11 @@ export default function UserAccount() {
 		useState(false);
 
 	useEffect(() => {
+		document.title =
+			"My Account - OrtuPintar";
+	}, []);
+
+	useEffect(() => {
 		const userData = JSON.parse(
 			localStorage.getItem(
 				"user"

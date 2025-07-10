@@ -129,6 +129,11 @@ export default function HomePage() {
 		setUser(userData);
 	}, []);
 
+	useEffect(() => {
+		document.title =
+			"Dashboard - OrtuPintar";
+	}, []);
+
 	const handleAddChild = async (childData) => {
 		try {
 			const token =
