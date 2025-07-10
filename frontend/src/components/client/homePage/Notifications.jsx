@@ -1,14 +1,20 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 
 export default function Notifications({
 	notifications,
 	onMarkAsRead,
 	onMarkAllAsRead,
+	onClearAll,
 }) {
 	const [
 		selectedNotification,
 		setSelectedNotification,
 	] = useState(null);
+
+	const unreadCount = notifications.filter(
+		(n) => !n.read
+	).length;
 
 	if (!notifications || notifications.length === 0) {
 		return (
@@ -55,6 +61,8 @@ export default function Notifications({
 				return "⚠️";
 			case "info":
 				return "ℹ️";
+			case "activity_done":
+				return "✅";
 			default:
 				return "🔔";
 		}
@@ -154,9 +162,16 @@ export default function Notifications({
 					<h3 className="text-lg font-bold text-gray-900">
 						Notifications
 					</h3>
-					<span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+					<span
+						className={`text-xs px-2 py-1 rounded-full ${
+							unreadCount >
+							0
+								? "bg-red-500 text-white"
+								: "bg-gray-300 text-gray-700"
+						}`}
+					>
 						{
-							notifications.length
+							unreadCount
 						}
 					</span>
 				</div>
@@ -170,55 +185,52 @@ export default function Notifications({
 								key={
 									notification.id
 								}
-								className={`p-3 rounded-lg border transition-all duration-200 hover:shadow-md ${getNotificationStyle(
+								className={`p-3 rounded-lg border transition-all duration-200 hover:shadow-md flex items-start gap-3 ${getNotificationStyle(
 									notification.type
-								)}`}
+								)} ${
+									!notification.read
+										? "border-emerald-400 ring-2 ring-emerald-100"
+										: ""
+								}`}
 							>
-								<div className="flex items-start space-x-3">
-									<div className="text-lg flex-shrink-0">
-										{getNotificationIcon(
-											notification.type
-										)}
-									</div>
-									<div className="flex-1 min-w-0">
-										<p className="text-sm text-gray-900 font-medium leading-relaxed">
+								<div className="text-lg flex-shrink-0">
+									{getNotificationIcon(
+										notification.type
+									)}
+								</div>
+								<div className="flex-1 min-w-0">
+									<p
+										className={`text-sm font-medium leading-relaxed ${
+											notification.read
+												? "text-gray-400 line-through"
+												: "text-gray-900"
+										}`}
+									>
+										{
+											notification.message
+										}
+									</p>
+									<div className="flex items-center justify-between mt-2">
+										<p className="text-xs text-gray-500">
 											{
-												notification.message
+												notification.time
 											}
 										</p>
-										<div className="flex items-center justify-between mt-2">
-											<p className="text-xs text-gray-500">
-												{
-													notification.time
-												}
-											</p>
-											<div className="flex space-x-2">
-												{notification.actionable && (
-													<button
-														onClick={() =>
-															handleViewDetails(
-																notification
-															)
-														}
-														className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors hover:underline"
-													>
-														View
-														Details
-													</button>
-												)}
+										<div className="flex space-x-2">
+											{!notification.read && (
 												<button
 													onClick={() =>
 														onMarkAsRead(
 															notification.id
 														)
 													}
-													className="text-xs text-gray-500 hover:text-gray-700 font-medium transition-colors"
+													className="text-xs bg-emerald-500 text-white px-2 py-1 rounded hover:bg-emerald-600 transition-colors font-medium"
 												>
-													✓
 													Mark
-													Read
+													as
+													read
 												</button>
-											</div>
+											)}
 										</div>
 									</div>
 								</div>
@@ -227,20 +239,36 @@ export default function Notifications({
 					)}
 				</div>
 
-				{/* Mark All as Read */}
+				{/* Mark All as Read & Clear All */}
 				{notifications.length >
 					0 && (
-					<div className="mt-4 pt-4 border-t border-gray-200">
+					<div className="mt-4 pt-4 border-t border-gray-200 flex gap-2">
+						{notifications.some(
+							(
+								n
+							) =>
+								!n.read
+						) && (
+							<button
+								onClick={
+									onMarkAllAsRead
+								}
+								className="flex-1 text-sm bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium rounded-lg py-2 transition-colors"
+							>
+								Mark
+								all
+								as
+								read
+							</button>
+						)}
 						<button
 							onClick={
-								onMarkAllAsRead
+								onClearAll
 							}
-							className="w-full text-sm text-gray-600 hover:text-gray-800 font-medium transition-colors"
+							className="flex-1 text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 font-medium rounded-lg py-2 transition-colors"
 						>
-							Mark
+							Clear
 							all
-							as
-							read
 						</button>
 					</div>
 				)}

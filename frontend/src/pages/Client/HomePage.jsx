@@ -31,6 +31,8 @@ export default function HomePage() {
 	const [children, setChildren] = useState([]);
 	const [showAddChildModal, setShowAddChildModal] =
 		useState(false);
+	const [upcomingReminders, setUpcomingReminders] =
+		useState([]);
 
 	const navigate = useNavigate();
 
@@ -115,44 +117,6 @@ export default function HomePage() {
 			};
 
 		fetchActivities();
-	}, []);
-
-	useEffect(() => {
-		// Initialize data (same as before)
-		setNotifications([
-			{
-				id: 1,
-				type: "milestone",
-				message: "Emma is ready for new cognitive activities!",
-				time: "2 hours ago",
-				actionable: true,
-				read: false,
-			},
-			{
-				id: 2,
-				type: "reminder",
-				message: "Time for Alex's weekly assessment",
-				time: "1 day ago",
-				actionable: true,
-				read: false,
-			},
-			{
-				id: 3,
-				type: "achievement",
-				message: "Congratulations! Emma completed her drawing milestone",
-				time: "3 days ago",
-				actionable: false,
-				read: false,
-			},
-			{
-				id: 4,
-				type: "alert",
-				message: "Vaccination reminder for Alex next week",
-				time: "5 days ago",
-				actionable: true,
-				read: false,
-			},
-		]);
 	}, []);
 
 	const handleAddChild = async (childData) => {
@@ -257,6 +221,152 @@ export default function HomePage() {
 		);
 	};
 
+	const handleClearNotifications = () => {
+		setNotifications([]);
+	};
+
+	const handleStartActivity = (activity) => {
+		if (!currentChild) return;
+		// Cegah duplikat untuk hari yang sama dan anak yang sama
+		const today = new Date()
+			.toISOString()
+			.split(
+				"T"
+			)[0];
+		const alreadyAdded =
+			upcomingReminders.some(
+				(
+					rem
+				) =>
+					rem.childId ===
+						currentChild.id &&
+					rem.activityId ===
+						activity.id &&
+					rem.date ===
+						today
+			);
+		if (alreadyAdded) return;
+		setUpcomingReminders(
+			(
+				prev
+			) => [
+				...prev,
+				{
+					childId: currentChild.id,
+					activityId: activity.id,
+					activityName:
+						activity.name ||
+						activity.title ||
+						"-",
+					date: today,
+					completed: false,
+				},
+			]
+		);
+	};
+
+	const handleCompleteReminder = (reminder) => {
+		setUpcomingReminders(
+			(
+				prev
+			) =>
+				prev.map(
+					(
+						rem
+					) =>
+						rem.childId ===
+							reminder.childId &&
+						rem.activityId ===
+							reminder.activityId &&
+						rem.date ===
+							reminder.date
+							? {
+									...rem,
+									completed: true,
+							  }
+							: rem
+				)
+		);
+		// Cari activity yang diselesaikan
+		const activity =
+			activities.find(
+				(
+					a
+				) =>
+					a.id ===
+					reminder.activityId
+			);
+		// Notifikasi selesai activity (biasa)
+		setNotifications((prev) => [
+			{
+				id: Date.now(),
+				type: "activity_done",
+				message: `Activity "${reminder.activityName}" has been completed!`,
+				time: new Date().toLocaleTimeString(
+					[],
+					{
+						hour: "2-digit",
+						minute: "2-digit",
+					}
+				),
+				actionable: false,
+				read: false,
+			},
+			...prev,
+		]);
+		// Jika activity adalah milestone, tambahkan notifikasi achievement
+		if (
+			activity &&
+			activity.isMilestone
+		) {
+			setNotifications(
+				(
+					prev
+				) => [
+					{
+						id:
+							Date.now() +
+							1,
+						type: "achievement",
+						message: `Milestone achieved: "${reminder.activityName}"! Congratulations!`,
+						time: new Date().toLocaleTimeString(
+							[],
+							{
+								hour: "2-digit",
+								minute: "2-digit",
+							}
+						),
+						actionable: false,
+						read: false,
+					},
+					...prev,
+				]
+			);
+		}
+	};
+
+	// Handler: Batalkan activity dari upcomingReminders
+	const handleCancelReminder = (reminder) => {
+		setUpcomingReminders(
+			(
+				prev
+			) =>
+				prev.filter(
+					(
+						rem
+					) =>
+						!(
+							rem.childId ===
+								reminder.childId &&
+							rem.activityId ===
+								reminder.activityId &&
+							rem.date ===
+								reminder.date
+						)
+				)
+		);
+	};
+
 	const unreadNotifications = notifications.filter(
 		(notification) =>
 			!notification.read
@@ -356,6 +466,94 @@ export default function HomePage() {
 		}
 	);
 
+	// Filter reminders untuk anak & hari ini
+	const today = new Date().toISOString().split("T")[0];
+	const childRemindersToday = upcomingReminders.filter(
+		(rem) =>
+			rem.childId ===
+				currentChild?.id &&
+			rem.date ===
+				today
+	);
+	const completedCount = childRemindersToday.filter(
+		(rem) => rem.completed
+	).length;
+	const progressToday =
+		childRemindersToday.length >
+		0
+			? Math.round(
+					(completedCount /
+						childRemindersToday.length) *
+						100
+			  )
+			: 0;
+
+	// Filter activities yang belum ada di keranjang hari ini
+	const activityIdsInReminders =
+		childRemindersToday.map(
+			(
+				rem
+			) =>
+				rem.activityId
+		);
+	const availableActivities = filteredActivities.filter(
+		(act) =>
+			!activityIdsInReminders.includes(
+				act.id
+			)
+	);
+
+	// Hitung progress harian untuk semua anak
+	const progressList = children.map((child) => {
+		const reminders =
+			upcomingReminders.filter(
+				(
+					rem
+				) =>
+					rem.childId ===
+						child.id &&
+					rem.date ===
+						today
+			);
+		const completed =
+			reminders.filter(
+				(
+					rem
+				) =>
+					rem.completed
+			).length;
+		return reminders.length > 0
+			? Math.round(
+					(completed /
+						reminders.length) *
+						100
+			  )
+			: 0;
+	});
+
+	// Ambil semua milestone activity
+	const milestoneActivities = activities.filter((a) => a.isMilestone);
+	// Ambil reminders milestone yang sudah selesai untuk anak aktif
+	const completedMilestoneReminders = upcomingReminders.filter(
+		(rem) =>
+			rem.childId === currentChild?.id &&
+			rem.completed &&
+			milestoneActivities.some((a) => a.id === rem.activityId)
+	);
+	// Recent achievements: milestone yang sudah selesai, urut terbaru
+	const recentAchievements = completedMilestoneReminders
+		.map((rem) => {
+			const act = activities.find((a) => a.id === rem.activityId);
+			return {
+				name: act?.name || act?.title || '-',
+				date: rem.date,
+			};
+		})
+		.sort((a, b) => new Date(b.date) - new Date(a.date));
+	// Next milestones: milestone yang belum pernah diselesaikan oleh anak aktif
+	const completedMilestoneIds = new Set(completedMilestoneReminders.map((rem) => rem.activityId));
+	const nextMilestones = milestoneActivities.filter((a) => !completedMilestoneIds.has(a.id));
+
 	return (
 		<div className="min-h-screen bg-gray-50">
 			{/* Header */}
@@ -410,6 +608,9 @@ export default function HomePage() {
 					calculateAge={
 						calculateAge
 					}
+					progressList={
+						progressList
+					}
 				/>
 
 				{/* Main Content Grid - Responsive Layout */}
@@ -430,6 +631,7 @@ export default function HomePage() {
 												currentChild.birthDate
 										  )
 										: "-",
+									progress: progressToday,
 								}}
 							/>
 						)}
@@ -440,7 +642,7 @@ export default function HomePage() {
 						{/* Recommended Activities */}
 						<RecommendedActivities
 							activities={
-								filteredActivities
+								availableActivities
 							}
 							currentChild={{
 								...currentChild,
@@ -448,6 +650,9 @@ export default function HomePage() {
 									currentChild?.birthDate
 								),
 							}}
+							onStartActivity={
+								handleStartActivity
+							}
 						/>
 						{filteredActivities.length ===
 							0 &&
@@ -488,7 +693,7 @@ export default function HomePage() {
 						{/* Notifications */}
 						<Notifications
 							notifications={
-								unreadNotifications
+								notifications
 							}
 							onMarkAsRead={
 								handleMarkAsRead
@@ -496,16 +701,36 @@ export default function HomePage() {
 							onMarkAllAsRead={
 								handleMarkAllAsRead
 							}
+							onClearAll={
+								handleClearNotifications
+							}
 						/>
 
 						{/* Upcoming Reminders */}
-						<UpcomingReminders />
+						<UpcomingReminders
+							reminders={
+								childRemindersToday
+							}
+							onComplete={
+								handleCompleteReminder
+							}
+							onCancel={
+								handleCancelReminder
+							}
+						/>
 
 						{/* Expert Support */}
 						<ExpertSupport />
 
 						{/* Weekly Summary */}
-						<WeeklySummary />
+						<WeeklySummary
+							reminders={
+								upcomingReminders
+							}
+							notifications={
+								notifications
+							}
+						/>
 					</div>
 				</div>
 
