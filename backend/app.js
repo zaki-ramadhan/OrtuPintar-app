@@ -7,6 +7,7 @@ import path from "path";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import childRoutes from "./routes/childRoutes.js";
+import recommendActivitiesRoutes from "./routes/recommendActivitiesRoutes.js";
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/children", childRoutes);
+app.use("/api/activities", recommendActivitiesRoutes);
 
 export default app;

@@ -48,6 +48,24 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const fetchActivities = async () => {
+      const token = localStorage.getItem("token"); // Kalau endpoint butuh Auth
+      try {
+        const response = await axios.get(`${API_URL}/activities`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("Activities API response:", response.data);
+        setActivities(response.data.activities || []);
+      } catch (err) {
+        console.error("Error fetching activities:", err);
+        setActivities([]);
+      }
+    };
+
+    fetchActivities();
+  }, []);
+
+  useEffect(() => {
     // Initialize data (same as before)
     setNotifications([
       {
@@ -81,49 +99,6 @@ export default function HomePage() {
         time: "5 days ago",
         actionable: true,
         read: false,
-      },
-    ]);
-
-    setActivities([
-      {
-        id: 1,
-        title: "Color Recognition Game",
-        duration: "15 min",
-        difficulty: "Easy",
-        category: "Cognitive",
-        ageGroup: "3-4 years",
-        icon: "🎨",
-        description: "Help your child identify and match different colors",
-      },
-      {
-        id: 2,
-        title: "Building Blocks Challenge",
-        duration: "20 min",
-        difficulty: "Medium",
-        category: "Motor Skills",
-        ageGroup: "2-5 years",
-        icon: "🧱",
-        description: "Develop fine motor skills through creative building",
-      },
-      {
-        id: 3,
-        title: "Story Time Adventure",
-        duration: "10 min",
-        difficulty: "Easy",
-        category: "Language",
-        ageGroup: "1-4 years",
-        icon: "📚",
-        description: "Interactive storytelling to boost language development",
-      },
-      {
-        id: 4,
-        title: "Shape Sorting Fun",
-        duration: "12 min",
-        difficulty: "Easy",
-        category: "Cognitive",
-        ageGroup: "2-3 years",
-        icon: "🔷",
-        description: "Learn shapes while having fun sorting and matching",
       },
     ]);
   }, []);
