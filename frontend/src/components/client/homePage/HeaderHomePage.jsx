@@ -4,7 +4,13 @@ import toast from "react-hot-toast";
 
 export default function HeaderHomePage() {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("user"));
+    setUser(userData);
+  }, []);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -60,9 +66,11 @@ export default function HeaderHomePage() {
                   <div className="py-2">
                     <div className="px-4 py-2 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">
-                        Sarah Johnson
+                        {user?.name || "-"}
                       </p>
-                      <p className="text-xs text-gray-500">sarah@email.com</p>
+                      <p className="text-xs text-gray-500">
+                        {user?.email || "-"}
+                      </p>
                     </div>
 
                     <Link

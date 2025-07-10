@@ -33,6 +33,7 @@ export default function HomePage() {
 		useState(false);
 	const [upcomingReminders, setUpcomingReminders] =
 		useState([]);
+	const [user, setUser] = useState(null);
 
 	const navigate = useNavigate();
 
@@ -117,6 +118,15 @@ export default function HomePage() {
 			};
 
 		fetchActivities();
+	}, []);
+
+	useEffect(() => {
+		const userData = JSON.parse(
+			localStorage.getItem(
+				"user"
+			)
+		);
+		setUser(userData);
 	}, []);
 
 	const handleAddChild = async (childData) => {
@@ -532,27 +542,72 @@ export default function HomePage() {
 	});
 
 	// Ambil semua milestone activity
-	const milestoneActivities = activities.filter((a) => a.isMilestone);
-	// Ambil reminders milestone yang sudah selesai untuk anak aktif
-	const completedMilestoneReminders = upcomingReminders.filter(
-		(rem) =>
-			rem.childId === currentChild?.id &&
-			rem.completed &&
-			milestoneActivities.some((a) => a.id === rem.activityId)
+	const milestoneActivities = activities.filter(
+		(a) => a.isMilestone
 	);
+	// Ambil reminders milestone yang sudah selesai untuk anak aktif
+	const completedMilestoneReminders =
+		upcomingReminders.filter(
+			(
+				rem
+			) =>
+				rem.childId ===
+					currentChild?.id &&
+				rem.completed &&
+				milestoneActivities.some(
+					(
+						a
+					) =>
+						a.id ===
+						rem.activityId
+				)
+		);
 	// Recent achievements: milestone yang sudah selesai, urut terbaru
 	const recentAchievements = completedMilestoneReminders
 		.map((rem) => {
-			const act = activities.find((a) => a.id === rem.activityId);
+			const act =
+				activities.find(
+					(
+						a
+					) =>
+						a.id ===
+						rem.activityId
+				);
 			return {
-				name: act?.name || act?.title || '-',
+				name:
+					act?.name ||
+					act?.title ||
+					"-",
 				date: rem.date,
 			};
 		})
-		.sort((a, b) => new Date(b.date) - new Date(a.date));
+		.sort(
+			(
+				a,
+				b
+			) =>
+				new Date(
+					b.date
+				) -
+				new Date(
+					a.date
+				)
+		);
 	// Next milestones: milestone yang belum pernah diselesaikan oleh anak aktif
-	const completedMilestoneIds = new Set(completedMilestoneReminders.map((rem) => rem.activityId));
-	const nextMilestones = milestoneActivities.filter((a) => !completedMilestoneIds.has(a.id));
+	const completedMilestoneIds = new Set(
+		completedMilestoneReminders.map(
+			(
+				rem
+			) =>
+				rem.activityId
+		)
+	);
+	const nextMilestones = milestoneActivities.filter(
+		(a) =>
+			!completedMilestoneIds.has(
+				a.id
+			)
+	);
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -574,7 +629,9 @@ export default function HomePage() {
 							: "Evening"}
 
 						,
-						Sarah!
+						{user?.name
+							? ` ${user.name}`
+							: "-"}
 						👋
 					</h2>
 					<p className="text-sm sm:text-base text-gray-600">

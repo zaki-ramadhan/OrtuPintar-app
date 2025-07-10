@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import toast from "react-hot-toast";
 
@@ -59,6 +59,50 @@ export default function UserAccount() {
 		language: "en",
 		timezone: "America/New_York",
 	});
+
+	const [user, setUser] = useState(null);
+
+	useEffect(() => {
+		const userData = JSON.parse(
+			localStorage.getItem(
+				"user"
+			)
+		);
+		setUser(userData);
+		if (userData) {
+			setProfileData(
+				(
+					prev
+				) => ({
+					...prev,
+					name:
+						userData.name ||
+						prev.name,
+					email:
+						userData.email ||
+						prev.email,
+					phone:
+						userData.phone ||
+						prev.phone,
+					location:
+						userData.location ||
+						prev.location,
+					joinDate:
+						userData.joinDate ||
+						prev.joinDate,
+					avatar:
+						userData.avatar ||
+						prev.avatar,
+					bio:
+						userData.bio ||
+						prev.bio,
+					emergencyContact:
+						userData.emergencyContact ||
+						prev.emergencyContact,
+				})
+			);
+		}
+	}, []);
 
 	const handleProfileUpdate = (e) => {
 		e.preventDefault();
@@ -217,9 +261,11 @@ export default function UserAccount() {
 										/>
 									) : (
 										<span className="text-white text-3xl font-bold">
-											{profileData.name.charAt(
-												0
-											)}
+											{user?.name
+												? user.name.charAt(
+														0
+												  )
+												: "-"}
 										</span>
 									)}
 								</div>
@@ -268,20 +314,22 @@ export default function UserAccount() {
 							<div>
 								<h1 className="text-3xl font-bold text-gray-900">
 									{
-										profileData.name
+										user?.name
 									}
 								</h1>
 								<p className="text-gray-600">
 									{
-										profileData.email
+										user?.email
 									}
 								</p>
 								<p className="text-sm text-gray-500 mt-1">
 									Member
 									since{" "}
-									{
-										profileData.joinDate
-									}
+									{profileData.joinDate
+										? new Date(
+												profileData.joinDate
+										  ).toLocaleDateString()
+										: "-"}
 								</p>
 							</div>
 						</div>
