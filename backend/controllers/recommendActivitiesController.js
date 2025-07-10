@@ -5,7 +5,11 @@ import { db } from "../config/db.js";
 export const getAllActivities = async (req, res) => {
   try {
     const [rows] = await db.query(
-      "SELECT id, title, description, category, difficulty, duration, age_group, icon FROM activities ORDER BY id DESC"
+      `SELECT 
+        id, title, description, category, difficulty, duration, 
+        age_group, age_group_min, age_group_max, icon 
+       FROM activities 
+       ORDER BY id DESC`
     );
 
     return res.status(200).json({

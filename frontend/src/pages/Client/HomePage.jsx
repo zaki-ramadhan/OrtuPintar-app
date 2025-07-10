@@ -166,7 +166,6 @@ export default function HomePage() {
     (notification) => !notification.read
   );
   //   const currentChild = children[activeChild];
-  const currentChild = children[activeChild] || null;
 
   function calculateAge(birthDateString) {
     const today = new Date();
@@ -189,6 +188,31 @@ export default function HomePage() {
       }`;
     }
   }
+
+  function calculateAgeInYears(birthDateString) {
+    const today = new Date();
+    const birthDate = new Date(birthDateString);
+    let years = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      years--;
+    }
+    return years;
+  }
+
+  const currentChild = children[activeChild] || null;
+
+  const childAgeInYears = currentChild?.birthDate
+    ? calculateAgeInYears(currentChild.birthDate)
+    : null;
+
+  const filteredActivities = activities.filter((activity) => {
+    if (!childAgeInYears) return false;
+    return (
+      childAgeInYears >= activity.age_group_min &&
+      childAgeInYears <= activity.age_group_max
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -236,8 +260,11 @@ export default function HomePage() {
 
             {/* Recommended Activities */}
             <RecommendedActivities
-              activities={activities}
-              currentChild={currentChild}
+              activities={filteredActivities}
+              currentChild={{
+                ...currentChild,
+                age: calculateAge(currentChild?.birthDate),
+              }}
             />
 
             {/* Recent Activities */}

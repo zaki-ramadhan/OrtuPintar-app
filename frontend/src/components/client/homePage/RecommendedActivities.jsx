@@ -1,8 +1,6 @@
 import React from "react";
 
 export default function RecommendedActivities({ activities, currentChild }) {
-  const filteredActivities = activities?.slice(0, 3) || [];
-
   const getDifficultyColor = (difficulty) => {
     switch (difficulty.toLowerCase()) {
       case "easy":
@@ -67,11 +65,12 @@ export default function RecommendedActivities({ activities, currentChild }) {
       </div>
 
       <div className="space-y-3 sm:space-y-4">
-        {filteredActivities.map((activity) => (
+        {activities.map((activity) => (
           <div
             key={activity.id}
             className="border border-gray-200 rounded-xl p-3 sm:p-4 hover:border-emerald-300 hover:shadow-md transition-all duration-200 cursor-pointer group"
           >
+            {/* Mobile */}
             <div className="block sm:hidden">
               <div className="flex items-start space-x-3 mb-3">
                 <div className="text-2xl group-hover:scale-110 transition-transform duration-200 flex-shrink-0">
