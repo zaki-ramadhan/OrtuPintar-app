@@ -3,6 +3,7 @@ export default function ChildSelector({
   activeChild,
   setActiveChild,
   onAddChild,
+  calculateAge,
 }) {
   return (
     <div className="mb-6 sm:mb-8">
@@ -20,54 +21,60 @@ export default function ChildSelector({
 
         {/* Mobile: Vertical Stack */}
         <div className="block sm:hidden space-y-3">
-          {children.map((child, index) => (
-            <button
-              key={child.id}
-              onClick={() => setActiveChild(index)}
-              className={`w-full p-4 rounded-xl border-2 transition-all duration-300 ${
-                activeChild === index
-                  ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-blue-50 shadow-lg"
-                  : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
-              }`}
-            >
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <div className="text-3xl">{child.avatar}</div>
-                  {activeChild === index && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-2 h-2 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
+          {children.map((child, index) => {
+            const progress = Number(child.progress) || 0;
 
-                <div className="flex-1 text-left">
-                  <h4 className="font-bold text-gray-900 text-base">
-                    {child.name}
-                  </h4>
-                  <p className="text-sm text-gray-500">{child.age}</p>
-                </div>
-
-                <div className="text-center">
-                  <div className="text-lg font-bold text-emerald-600">
-                    {child.progress}%
+            return (
+              <button
+                key={child.id}
+                onClick={() => setActiveChild(index)}
+                className={`w-full p-4 rounded-xl border-2 transition-all duration-300 ${
+                  activeChild === index
+                    ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-blue-50 shadow-lg"
+                    : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                }`}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <div className="text-3xl">{child.photoUrl}</div>
+                    {activeChild === index && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-2 h-2 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-xs text-gray-600">Progress</div>
+
+                  <div className="flex-1 text-left">
+                    <h4 className="font-bold text-gray-900 text-base">
+                      {child.name}
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      {calculateAge(child.birthDate)}
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-emerald-600">
+                      {progress}%
+                    </div>
+                    <div className="text-xs text-gray-600">Progress</div>
+                  </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
 
           {/* Mobile Add Child Button */}
           <button
@@ -101,90 +108,94 @@ export default function ChildSelector({
         {/* Desktop: Horizontal Scroll */}
         <div className="hidden sm:block">
           <div className="flex space-x-4 overflow-x-auto p-4">
-            {children.map((child, index) => (
-              <button
-                key={child.id}
-                onClick={() => setActiveChild(index)}
-                className={`flex-shrink-0 p-4 lg:p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-105 ${
-                  activeChild === index
-                    ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-blue-50 shadow-lg"
-                    : "border-gray-200 bg-white hover:border-gray-300 hover:shadow"
-                }`}
-              >
-                <div className="flex flex-col items-center space-y-3 min-w-[160px] lg:min-w-[180px]">
-                  <div className="relative">
-                    <div className="text-3xl lg:text-4xl mb-2">
-                      {child.avatar}
+            {children.map((child, index) => {
+              const progress = Number(child.progress) || 0;
+
+              return (
+                <button
+                  key={child.id}
+                  onClick={() => setActiveChild(index)}
+                  className={`flex-shrink-0 p-4 lg:p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-105 ${
+                    activeChild === index
+                      ? "border-emerald-400 bg-gradient-to-br from-emerald-50 to-blue-50 shadow-lg"
+                      : "border-gray-200 bg-white hover:border-gray-300 hover:shadow"
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-3 min-w-[160px] lg:min-w-[180px]">
+                    <div className="relative">
+                      <div className="text-3xl lg:text-4xl mb-2">
+                        {child.photoUrl}
+                      </div>
+                      {activeChild === index && (
+                        <div className="absolute -top-2 -right-2 w-5 h-5 lg:w-6 lg:h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                          <svg
+                            className="w-2 h-2 lg:w-3 lg:h-3 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        </div>
+                      )}
                     </div>
-                    {activeChild === index && (
-                      <div className="absolute -top-2 -right-2 w-5 h-5 lg:w-6 lg:h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+
+                    <div className="text-center">
+                      <h4 className="font-bold text-gray-900 text-base lg:text-lg">
+                        {child.name}
+                      </h4>
+                      <p className="text-xs lg:text-sm text-gray-500 mb-3">
+                        {calculateAge(child.birthDate)}
+                      </p>
+
+                      {/* Progress Ring */}
+                      <div className="relative w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-2">
                         <svg
-                          className="w-2 h-2 lg:w-3 lg:h-3 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                          className="w-12 h-12 lg:w-16 lg:h-16 transform -rotate-90"
+                          viewBox="0 0 64 64"
                         >
-                          <path
+                          <circle
+                            cx="32"
+                            cy="32"
+                            r="28"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                            className="text-gray-200"
+                          />
+                          <circle
+                            cx="32"
+                            cy="32"
+                            r="28"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                            strokeDasharray={`${2 * Math.PI * 28}`}
+                            strokeDashoffset={`${
+                              2 * Math.PI * 28 * (1 - progress / 100)
+                            }`}
+                            className="text-emerald-500 transition-all duration-1000"
                             strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
                           />
                         </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs lg:text-sm font-bold text-emerald-600">
+                            {progress}%
+                          </span>
+                        </div>
                       </div>
-                    )}
-                  </div>
 
-                  <div className="text-center">
-                    <h4 className="font-bold text-gray-900 text-base lg:text-lg">
-                      {child.name}
-                    </h4>
-                    <p className="text-xs lg:text-sm text-gray-500 mb-3">
-                      {child.age}
-                    </p>
-
-                    {/* Progress Ring */}
-                    <div className="relative w-12 h-12 lg:w-16 lg:h-16 mx-auto mb-2">
-                      <svg
-                        className="w-12 h-12 lg:w-16 lg:h-16 transform -rotate-90"
-                        viewBox="0 0 64 64"
-                      >
-                        <circle
-                          cx="32"
-                          cy="32"
-                          r="28"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                          className="text-gray-200"
-                        />
-                        <circle
-                          cx="32"
-                          cy="32"
-                          r="28"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                          strokeDasharray={`${2 * Math.PI * 28}`}
-                          strokeDashoffset={`${
-                            2 * Math.PI * 28 * (1 - child.progress / 100)
-                          }`}
-                          className="text-emerald-500 transition-all duration-1000"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xs lg:text-sm font-bold text-emerald-600">
-                          {child.progress}%
-                        </span>
-                      </div>
+                      <p className="text-xs text-gray-600">Overall Progress</p>
                     </div>
-
-                    <p className="text-xs text-gray-600">Overall Progress</p>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
 
             {/* Desktop Add Child Button */}
             <button

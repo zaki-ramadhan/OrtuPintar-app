@@ -193,6 +193,28 @@ export default function HomePage() {
   //   const currentChild = children[activeChild];
   const currentChild = children[activeChild] || null;
 
+  function calculateAge(birthDateString) {
+    const today = new Date();
+    const birthDate = new Date(birthDateString);
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (years === 0) {
+      return `${months} month${months > 1 ? "s" : ""}`;
+    } else if (months === 0) {
+      return `${years} year${years > 1 ? "s" : ""}`;
+    } else {
+      return `${years} year${years > 1 ? "s" : ""}, ${months} month${
+        months > 1 ? "s" : ""
+      }`;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -222,6 +244,7 @@ export default function HomePage() {
           activeChild={activeChild}
           setActiveChild={setActiveChild}
           onAddChild={() => setShowAddChildModal(true)}
+          calculateAge={calculateAge}
         />
 
         {/* Main Content Grid - Responsive Layout */}
