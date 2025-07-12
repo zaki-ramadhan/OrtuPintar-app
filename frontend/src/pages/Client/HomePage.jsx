@@ -32,6 +32,20 @@ export default function HomePage() {
 
   const navigate = useNavigate();
 
+  // Function to scroll to RecommendedActivities
+  const scrollToRecommendedActivities = () => {
+    const element = document.querySelector(
+      '[data-component="recommended-activities"]'
+    );
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchChildren = async () => {
       const token = localStorage.getItem("token");
@@ -569,14 +583,16 @@ export default function HomePage() {
             <QuickActions />
 
             {/* Recommended Activities */}
-            <RecommendedActivities
-              activities={availableActivities}
-              currentChild={{
-                ...currentChild,
-                age: calculateAge(currentChild?.birthDate),
-              }}
-              onStartActivity={handleStartActivity}
-            />
+            <div data-component="recommended-activities">
+              <RecommendedActivities
+                activities={availableActivities}
+                currentChild={{
+                  ...currentChild,
+                  age: calculateAge(currentChild?.birthDate),
+                }}
+                onStartActivity={handleStartActivity}
+              />
+            </div>
             {filteredActivities.length === 0 && childAgeInYears === 0 && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4 mt-2 text-center">
                 Saat ini belum ada saran aktivitas untuk anak usia di bawah 1
@@ -620,36 +636,39 @@ export default function HomePage() {
 
         {/* Bottom Section - Responsive Grid */}
         <div className="mt-8 sm:mt-12 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          {/* Quick Help Card */}
+          {/* Get Started Card */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-blue-200">
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl mb-4">❓</div>
+              <div className="text-4xl sm:text-5xl mb-4">⚡</div>
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
-                Need Help Getting Started?
+                Get Started
               </h3>
               <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-                Our quick tutorial will guide you through tracking your child's
-                first milestone.
+                Jump into activities and start tracking your child's
+                developmental milestones today.
               </p>
-              <button className="bg-blue-500 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg sm:rounded-xl hover:bg-blue-600 transition-colors font-semibold text-sm sm:text-base w-full sm:w-auto">
-                Start Tutorial
+              <button
+                onClick={scrollToRecommendedActivities}
+                className="bg-blue-500 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg sm:rounded-xl hover:bg-blue-600 transition-colors font-semibold text-sm sm:text-base w-full sm:w-auto"
+              >
+                Start Activities
               </button>
             </div>
           </div>
 
-          {/* Expert Consultation Card */}
-          <div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-emerald-200">
+          {/* View Reports Card */}
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-purple-200">
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl mb-4">👩‍⚕️</div>
+              <div className="text-4xl sm:text-5xl mb-4">❓</div>
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
-                Talk to an Expert
+                View Reports
               </h3>
               <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-                Schedule a free consultation with our pediatric development
-                specialists.
+                Monitor your child's progress with detailed reports and
+                developmental insights.
               </p>
-              <button className="bg-emerald-500 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg sm:rounded-xl hover:bg-emerald-600 transition-colors font-semibold text-sm sm:text-base w-full sm:w-auto">
-                Book Consultation
+              <button className="bg-purple-500 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg sm:rounded-xl hover:bg-purple-600 transition-colors font-semibold text-sm sm:text-base w-full sm:w-auto">
+                View Reports
               </button>
             </div>
           </div>
