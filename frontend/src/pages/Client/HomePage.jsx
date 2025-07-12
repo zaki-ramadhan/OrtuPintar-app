@@ -28,6 +28,7 @@ export default function HomePage() {
   const [upcomingReminders, setUpcomingReminders] = useState([]);
   const [user, setUser] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0); // untuk trigger refresh RecentActivities
+  const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0); // untuk trigger refresh WeeklySummary
 
   const navigate = useNavigate();
 
@@ -269,8 +270,9 @@ export default function HomePage() {
       await fetchNotifications();
       await fetchChildProgress();
 
-      // Trigger refresh untuk RecentActivities
+      // Trigger refresh untuk RecentActivities dan WeeklySummary
       setRefreshKey((prev) => prev + 1);
+      setWeeklyRefreshKey((prev) => prev + 1);
 
       toast.success("Activity completed!");
     } catch (err) {
@@ -609,6 +611,7 @@ export default function HomePage() {
 
             {/* Weekly Summary */}
             <WeeklySummary
+              key={weeklyRefreshKey}
               reminders={upcomingReminders}
               notifications={notifications}
             />

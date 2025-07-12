@@ -491,3 +491,86 @@ export const getRecentActivities = async (req, res) => {
     return res.status(500).json({ message: "Terjadi kesalahan sistem." });
   }
 };
+
+// ✅ GET: Weekly summary untuk semua anak user
+export const getWeeklySummary = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    // Hitung tanggal minggu ini dan minggu lalu
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const startOfLastWeek = new Date(startOfWeek);
+    startOfLastWeek.setDate(startOfWeek.getDate() - 7);
+
+    const endOfLastWeek = new Date(startOfLastWeek);
+    endOfLastWeek.setDate(startOfLastWeek.getDate() + 6);
+    endOfLastWeek.setHours(23, 59, 59, 999);
+
+    // Activities completed minggu ini
+    const [thisWeekActivities] = await db.query(
+      `SELECT COUNT(*) as count
+       FROM child_activities ca
+       JOIN children c ON ca.child_id = c.id
+       WHERE c.user_id = ? 
+       AND ca.status = 'completed'
+       AND ca.completed_at >= ? AND ca.completed_at <= ?`,
+      [userId, startOfWeek, endOfWeek]
+    );
+
+    // Activities completed minggu lalu
+    const [lastWeekActivities] = await db.query(
+      `SELECT COUNT(*) as count
+       FROM child_activities ca
+       JOIN children c ON ca.child_id = c.id
+       WHERE c.user_id = ? 
+       AND ca.status = 'completed'
+       AND ca.completed_at >= ? AND ca.completed_at <= ?`,
+      [userId, startOfLastWeek, endOfLastWeek]
+    );
+
+    // Milestones achieved minggu ini
+    const [thisWeekMilestones] = await db.query(
+      `SELECT COUNT(*) as count
+       FROM child_milestones cm
+       JOIN children c ON cm.child_id = c.id
+       WHERE c.user_id = ?
+       AND cm.achieved_at >= ? AND cm.achieved_at <= ?`,
+      [userId, startOfWeek, endOfWeek]
+    );
+
+    // Milestones achieved minggu lalu
+    const [lastWeekMilestones] = await db.query(
+      `SELECT COUNT(*) as count
+       FROM child_milestones cm
+       JOIN children c ON cm.child_id = c.id
+       WHERE c.user_id = ?
+       AND cm.achieved_at >= ? AND cm.achieved_at <= ?`,
+      [userId, startOfLastWeek, endOfLastWeek]
+    );
+
+    return res.status(200).json({
+      message: "Weekly summary fetched successfully",
+      summary: {
+        thisWeek: {
+          activities: thisWeekActivities[0].count,
+          milestones: thisWeekMilestones[0].count,
+        },
+        lastWeek: {
+          activities: lastWeekActivities[0].count,
+          milestones: lastWeekMilestones[0].count,
+        },
+      },
+    });
+  } catch (err) {
+    console.error("Get weekly summary error:", err);
+    return res.status(500).json({ message: "Terjadi kesalahan sistem." });
+  }
+};
