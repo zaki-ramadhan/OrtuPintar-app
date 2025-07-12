@@ -344,6 +344,9 @@ export default function HomePage() {
   // Helper functions untuk fetch data
   const fetchNotifications = async () => {
     const token = localStorage.getItem("token");
+    const userData = JSON.parse(localStorage.getItem("user"));
+    console.log("🔔 Fetching notifications for user:", userData);
+
     try {
       const response = await axios.get(`${API_URL}/notifications`, {
         headers: {
@@ -351,9 +354,14 @@ export default function HomePage() {
           "Cache-Control": "no-cache",
         },
       });
+
+      console.log("📬 Notifications API response:", response.data);
+      console.log("📦 Notifications data:", response.data.notifications);
+
       setNotifications(response.data.notifications || []);
     } catch (err) {
-      console.error("Error fetching notifications:", err);
+      console.error("❌ Error fetching notifications:", err);
+      console.error("❌ Error response:", err.response?.data);
     }
   };
 

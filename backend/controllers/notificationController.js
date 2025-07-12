@@ -3,9 +3,47 @@ import { db } from "../config/db.js";
 
 // ✅ GET: Semua notifications untuk user
 export const getUserNotifications = async (req, res) => {
-  const userId = req.user.id; // dari middleware auth
-
   try {
+    console.log(`🔔 Masuk ke getUserNotifications...`);
+    console.log(`🔐 req.user:`, req.user);
+
+    // Test database connection dulu
+    try {
+      await db.query("SELECT 1");
+      console.log(`✅ Database connection OK`);
+    } catch (dbError) {
+      console.error(`❌ Database connection error:`, dbError);
+      return res.status(500).json({
+        message: "Database connection failed",
+        error: dbError.message,
+      });
+    }
+
+    if (!req.user || !req.user.id) {
+      console.error("❌ Tidak ada user di request");
+      return res.status(401).json({ message: "User tidak terauthentikasi" });
+    }
+
+    const userId = req.user.id;
+    console.log(`👤 Mengambil notifications untuk userId: ${userId}`);
+
+    // Test query sederhana dulu
+    try {
+      const [testRows] = await db.query(
+        `SELECT COUNT(*) as count FROM notifications WHERE user_id = ?`,
+        [userId]
+      );
+      console.log(
+        `📊 Total notifications untuk user ${userId}:`,
+        testRows[0].count
+      );
+    } catch (testError) {
+      console.error(`❌ Test query error:`, testError);
+      return res
+        .status(500)
+        .json({ message: "Query test failed", error: testError.message });
+    }
+
     const [rows] = await db.query(
       `SELECT 
         n.id,
@@ -13,7 +51,7 @@ export const getUserNotifications = async (req, res) => {
         n.title,
         n.message,
         n.action_url,
-        n.is_read as read,
+        n.is_read as \`read\`,
         n.created_at,
         c.name as child_name
        FROM notifications n
@@ -22,6 +60,11 @@ export const getUserNotifications = async (req, res) => {
        ORDER BY n.created_at DESC
        LIMIT 50`,
       [userId]
+    );
+
+    console.log(
+      `📬 Ditemukan ${rows.length} notifications untuk user ${userId}:`,
+      rows
     );
 
     const notifications = rows.map((row) => ({
@@ -38,13 +81,21 @@ export const getUserNotifications = async (req, res) => {
       childName: row.child_name,
     }));
 
+    console.log(`📤 Mengirim mapped notifications:`, notifications);
+
     return res.status(200).json({
-      message: "Notifications fetched successfully",
+      message: "Notifications berhasil diambil",
       notifications: notifications,
     });
   } catch (err) {
-    console.error("Get notifications error:", err);
-    return res.status(500).json({ message: "Terjadi kesalahan sistem." });
+    console.error("❌ Error di getUserNotifications:", err);
+    console.error("❌ Error stack:", err.stack);
+    console.error("❌ Error message:", err.message);
+    return res.status(500).json({
+      message: "Terjadi kesalahan sistem",
+      error: err.message,
+      stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+    });
   }
 };
 

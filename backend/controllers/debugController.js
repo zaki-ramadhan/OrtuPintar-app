@@ -37,3 +37,38 @@ export const debugChildActivities = async (req, res) => {
     return res.status(500).json({ message: "Debug failed" });
   }
 };
+
+export const debugNotifications = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    console.log(`🔍 Debug notifications for userId: ${userId}`);
+
+    // Get all notifications for this user
+    const [allNotifications] = await db.query(
+      `SELECT 
+         n.*,
+         c.name as child_name
+       FROM notifications n
+       LEFT JOIN children c ON n.child_id = c.id
+       WHERE n.user_id = ?
+       ORDER BY n.created_at DESC`,
+      [userId]
+    );
+
+    console.log(
+      `Found ${allNotifications.length} notifications:`,
+      allNotifications
+    );
+
+    return res.json({
+      message: "Debug notifications retrieved",
+      userId: parseInt(userId),
+      totalNotifications: allNotifications.length,
+      notifications: allNotifications,
+    });
+  } catch (err) {
+    console.error("Debug notifications error:", err);
+    return res.status(500).json({ message: "Debug notifications failed" });
+  }
+};
