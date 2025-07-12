@@ -114,7 +114,7 @@ export default function RecentAcitivities() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="max-h-96 overflow-y-auto pr-2 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {recentActivities.map((item, index) => {
             const badge = getAchievementBadge(item);
             const categoryColor = getCategoryColor(item.category);
