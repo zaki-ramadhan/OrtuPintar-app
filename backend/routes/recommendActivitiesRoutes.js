@@ -2,16 +2,32 @@
 import express from "express";
 import {
   getAllActivities,
-  markActivityDone,
-  getRecentActivities,
+  startActivity,
+  completeActivity,
+  cancelActivity,
+  getUpcomingReminders,
+  getChildProgress,
 } from "../controllers/recommendActivitiesController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-// Semua routes aman pakai verifyToken
+// GET: Semua activities
 router.get("/", verifyToken, getAllActivities);
-router.post("/done", verifyToken, markActivityDone);
-router.get("/recent/:childId", verifyToken, getRecentActivities);
+
+// POST: Start activity (pindah ke upcoming reminders)
+router.post("/start", verifyToken, startActivity);
+
+// PUT: Complete activity
+router.put("/complete", verifyToken, completeActivity);
+
+// PUT: Cancel activity
+router.put("/cancel", verifyToken, cancelActivity);
+
+// GET: Upcoming reminders untuk child tertentu
+router.get("/reminders/:childId", verifyToken, getUpcomingReminders);
+
+// GET: Child progress
+router.get("/progress/:childId", verifyToken, getChildProgress);
 
 export default router;
