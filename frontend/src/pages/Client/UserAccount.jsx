@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import toast from "react-hot-toast";
 import LogoutModal from "@/components/client/homePage/LogoutModal";
 import AddChildModal from "@/components/client/homePage/AddChildModal";
+import DeleteChildModal from "@/components/client/modals/DeleteChildModal";
 
 export default function UserAccount() {
   const navigate = useNavigate();
@@ -14,7 +15,10 @@ export default function UserAccount() {
   const [childrenLoading, setChildrenLoading] = useState(false);
   const [showAddChildModal, setShowAddChildModal] = useState(false);
   const [showEditChildModal, setShowEditChildModal] = useState(false);
+  const [showDeleteChildModal, setShowDeleteChildModal] = useState(false);
   const [editingChild, setEditingChild] = useState(null);
+  const [deletingChild, setDeletingChild] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "Sarah Johnson",
     email: "sarah.johnson@email.com",
@@ -28,6 +32,12 @@ export default function UserAccount() {
 
   const [user, setUser] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   useEffect(() => {
     document.title = "My Account - OrtuPintar";
@@ -197,9 +207,11 @@ export default function UserAccount() {
       const transformedData = {
         name: childData.name,
         birthDate: childData.birthDate,
-        gender: childData.gender === "male" ? "Male" : "Female", // Convert to backend format
+        gender: childData.gender === "male" ? "L" : "P", // Convert to database enum format
         photoUrl: childData.avatar || null, // Use avatar as photoUrl
       };
+
+      console.log("🔍 Frontend sending data:", transformedData);
 
       const response = await fetch("http://localhost:5000/api/children", {
         method: "POST",
@@ -243,7 +255,7 @@ export default function UserAccount() {
       const transformedData = {
         name: childData.name,
         birthDate: childData.birthDate,
-        gender: childData.gender === "male" ? "Male" : "Female",
+        gender: childData.gender === "male" ? "L" : "P",
         photoUrl: childData.avatar || null,
       };
 
@@ -276,44 +288,54 @@ export default function UserAccount() {
   };
 
   const handleDeleteChild = async (childId, childName) => {
-    // Better confirmation with child name
-    if (
-      window.confirm(
-        `Are you sure you want to remove ${childName}? This action cannot be undone.`
-      )
-    ) {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          toast.error("Please login first");
-          navigate("/login");
-          return;
-        }
+    setDeletingChild({ id: childId, name: childName });
+    setShowDeleteChildModal(true);
+  };
 
-        const response = await fetch(
-          `http://localhost:5000/api/children/${childId}`,
-          {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+  const confirmDeleteChild = async () => {
+    if (!deletingChild) return;
 
-        const data = await response.json();
-
-        if (response.ok) {
-          toast.success(data.message || "Child removed successfully");
-          fetchChildren(); // Refresh children list
-        } else {
-          toast.error(data.message || "Failed to remove child");
-        }
-      } catch (error) {
-        console.error("Error deleting child:", error);
-        toast.error("Network error. Please try again.");
+    try {
+      setIsDeleting(true);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please login first");
+        navigate("/login");
+        return;
       }
+
+      const response = await fetch(
+        `http://localhost:5000/api/children/${deletingChild.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || "Child removed successfully");
+        setShowDeleteChildModal(false);
+        setDeletingChild(null);
+        fetchChildren(); // Refresh children list
+      } else {
+        toast.error(data.message || "Failed to remove child");
+      }
+    } catch (error) {
+      console.error("Error deleting child:", error);
+      toast.error("Network error. Please try again.");
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteChildModal(false);
+    setDeletingChild(null);
   };
 
   const handleLogout = () => {
@@ -321,6 +343,76 @@ export default function UserAccount() {
     localStorage.removeItem("user");
     toast.success("Logged out successfully");
     navigate("/login");
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+
+    if (isChangingPassword) return; // Prevent double submission
+
+    try {
+      setIsChangingPassword(true);
+
+      // Validasi client-side
+      if (
+        !passwordData.currentPassword ||
+        !passwordData.newPassword ||
+        !passwordData.confirmPassword
+      ) {
+        toast.error("All password fields are required");
+        return;
+      }
+
+      if (passwordData.newPassword.length < 8) {
+        toast.error("New password must be at least 8 characters long");
+        return;
+      }
+
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        toast.error("New password and confirmation password do not match");
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please login first");
+        navigate("/login");
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/users/change-password",
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            currentPassword: passwordData.currentPassword,
+            newPassword: passwordData.newPassword,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || "Password changed successfully!");
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        toast.error(data.message || "Failed to change password");
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast.error("Network error. Please try again.");
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const calculateAge = (birthDate) => {
@@ -662,7 +754,10 @@ export default function UserAccount() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <div className="text-4xl">{child.avatar}</div>
+                        <div className="text-4xl">
+                          {child.photoUrl ||
+                            (child.gender === "P" ? "👧" : "👦")}
+                        </div>
                         <div>
                           <h3 className="text-xl font-semibold text-gray-900">
                             {child.name}
@@ -753,14 +848,26 @@ export default function UserAccount() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   Change Password
                 </h3>
-                <form className="space-y-4 max-w-md">
+                <form
+                  className="space-y-4 max-w-md"
+                  onSubmit={handleChangePassword}
+                >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Current Password
                     </label>
                     <input
                       type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) =>
+                        setPasswordData((prev) => ({
+                          ...prev,
+                          currentPassword: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      placeholder="Enter your current password"
+                      disabled={isChangingPassword}
                     />
                   </div>
                   <div>
@@ -769,7 +876,16 @@ export default function UserAccount() {
                     </label>
                     <input
                       type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) =>
+                        setPasswordData((prev) => ({
+                          ...prev,
+                          newPassword: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      placeholder="Enter new password (min. 8 characters)"
+                      disabled={isChangingPassword}
                     />
                   </div>
                   <div>
@@ -778,35 +894,52 @@ export default function UserAccount() {
                     </label>
                     <input
                       type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) =>
+                        setPasswordData((prev) => ({
+                          ...prev,
+                          confirmPassword: e.target.value,
+                        }))
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                      placeholder="Confirm your new password"
+                      disabled={isChangingPassword}
                     />
                   </div>
                   <button
                     type="submit"
-                    className="bg-emerald-500 text-white px-6 py-3 rounded-lg hover:bg-emerald-600"
+                    disabled={isChangingPassword}
+                    className="bg-emerald-500 text-white px-6 py-3 rounded-lg hover:bg-emerald-600 disabled:bg-emerald-300 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
-                    Update Password
+                    {isChangingPassword ? (
+                      <>
+                        <svg
+                          className="animate-spin h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span>Changing Password...</span>
+                      </>
+                    ) : (
+                      <span>Update Password</span>
+                    )}
                   </button>
                 </form>
-              </div>
-
-              <div className="border-t pt-8">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Two-Factor Authentication
-                </h3>
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      SMS Authentication
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Receive codes via SMS
-                    </p>
-                  </div>
-                  <button className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600">
-                    Enable
-                  </button>
-                </div>
               </div>
 
               <div className="border-t pt-8">
@@ -858,12 +991,23 @@ export default function UserAccount() {
           initialData={{
             name: editingChild.name,
             birthDate: editingChild.birthDate,
-            gender: editingChild.gender.toLowerCase(),
+            gender: editingChild.gender === "L" ? "male" : "female", // Convert from database enum to modal format
             avatar:
               editingChild.photoUrl ||
-              (editingChild.gender === "Female" ? "👧" : "👦"),
+              (editingChild.gender === "P" ? "👧" : "👦"),
           }}
           isEditing={true}
+        />
+      )}
+
+      {/* Delete Child Modal */}
+      {showDeleteChildModal && deletingChild && (
+        <DeleteChildModal
+          isOpen={showDeleteChildModal}
+          onClose={handleCloseDeleteModal}
+          onConfirm={confirmDeleteChild}
+          childName={deletingChild.name}
+          isLoading={isDeleting}
         />
       )}
     </div>

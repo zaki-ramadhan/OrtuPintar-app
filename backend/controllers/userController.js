@@ -1,4 +1,5 @@
 import { db } from "../config/db.js";
+import bcrypt from "bcrypt";
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -159,6 +160,83 @@ export const updateUserProfile = async (req, res) => {
     console.error("❌ Update Profile Error:", err);
     res.status(500).json({
       message: "Error updating user profile",
+      error: err.message,
+    });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    console.log("🔄 Change Password Request:");
+    console.log("User ID:", req.user?.id);
+    console.log("Request Body:", req.body);
+
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    // Validasi input
+    if (!currentPassword || !newPassword) {
+      console.log("❌ Validation failed: Current and new password required");
+      return res.status(400).json({
+        message: "Current password and new password are required",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      console.log("❌ Validation failed: New password too short");
+      return res.status(400).json({
+        message: "New password must be at least 8 characters long",
+      });
+    }
+
+    console.log("✅ Validation passed, checking current password...");
+
+    // Ambil password user saat ini
+    const [user] = await db.query("SELECT password FROM users WHERE id = ?", [
+      userId,
+    ]);
+
+    if (user.length === 0) {
+      console.log("❌ User not found with ID:", userId);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verifikasi password saat ini
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user[0].password
+    );
+
+    if (!isCurrentPasswordValid) {
+      console.log("❌ Current password is incorrect");
+      return res.status(400).json({
+        message: "Current password is incorrect",
+      });
+    }
+
+    console.log("✅ Current password verified, hashing new password...");
+
+    // Hash password baru
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    console.log("✅ New password hashed, updating database...");
+
+    // Update password di database
+    await db.query("UPDATE users SET password = ? WHERE id = ?", [
+      hashedNewPassword,
+      userId,
+    ]);
+
+    console.log("✅ Password updated successfully");
+
+    res.json({
+      message: "Password changed successfully",
+    });
+  } catch (err) {
+    console.error("❌ Change Password Error:", err);
+    res.status(500).json({
+      message: "Error changing password",
       error: err.message,
     });
   }

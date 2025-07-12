@@ -12,6 +12,13 @@ export const addChild = async (req, res) => {
       .json({ message: "Name, birthDate, dan gender wajib diisi." });
   }
 
+  // Validate gender enum
+  if (!["P", "L"].includes(gender)) {
+    return res.status(400).json({
+      message: "Gender must be 'P' (Perempuan) or 'L' (Laki-laki)",
+    });
+  }
+
   try {
     const [result] = await db.query(
       `INSERT INTO children (user_id, name, birth_date, gender, photo_url, created_at)
@@ -105,6 +112,13 @@ export const updateChild = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Name, birth date, and gender are required" });
+    }
+
+    // Validate gender enum
+    if (!["P", "L"].includes(gender)) {
+      return res.status(400).json({
+        message: "Gender must be 'P' (Perempuan) or 'L' (Laki-laki)",
+      });
     }
 
     // Validate childId
