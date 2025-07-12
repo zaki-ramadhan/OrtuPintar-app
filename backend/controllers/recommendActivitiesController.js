@@ -425,3 +425,69 @@ export const getChildProgress = async (req, res) => {
     return res.status(500).json({ message: "Terjadi kesalahan sistem." });
   }
 };
+
+// ✅ GET: Recent completed activities untuk semua anak user
+export const getRecentActivities = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    // Ambil aktivitas completed dari semua anak user, diurutkan terbaru
+    const [rows] = await db.query(
+      `SELECT 
+         ca.id,
+         ca.activity_id,
+         ca.child_id,
+         ca.completed_at,
+         c.name as child_name,
+         a.title as activity_title,
+         a.icon,
+         a.category,
+         a.duration,
+         a.isMilestone,
+         TIMESTAMPDIFF(MINUTE, ca.completed_at, NOW()) as minutes_ago,
+         TIMESTAMPDIFF(HOUR, ca.completed_at, NOW()) as hours_ago,
+         TIMESTAMPDIFF(DAY, ca.completed_at, NOW()) as days_ago
+       FROM child_activities ca
+       JOIN children c ON ca.child_id = c.id
+       JOIN activities a ON ca.activity_id = a.id
+       WHERE c.user_id = ? 
+       AND ca.status = 'completed'
+       AND ca.completed_at IS NOT NULL
+       ORDER BY ca.completed_at DESC
+       LIMIT 10`,
+      [userId]
+    );
+
+    const recentActivities = rows.map((row) => {
+      // Format waktu yang user-friendly
+      let timeAgo;
+      if (row.minutes_ago < 60) {
+        timeAgo =
+          row.minutes_ago === 0 ? "Just now" : `${row.minutes_ago} minutes ago`;
+      } else if (row.hours_ago < 24) {
+        timeAgo = `${row.hours_ago} hour${row.hours_ago > 1 ? "s" : ""} ago`;
+      } else {
+        timeAgo = `${row.days_ago} day${row.days_ago > 1 ? "s" : ""} ago`;
+      }
+
+      return {
+        id: row.id,
+        activity: row.activity_title,
+        child: row.child_name,
+        time: timeAgo,
+        icon: row.icon,
+        category: row.category,
+        isMilestone: row.isMilestone,
+        completedAt: row.completed_at,
+      };
+    });
+
+    return res.status(200).json({
+      message: "Recent activities fetched successfully",
+      activities: recentActivities,
+    });
+  } catch (err) {
+    console.error("Get recent activities error:", err);
+    return res.status(500).json({ message: "Terjadi kesalahan sistem." });
+  }
+};

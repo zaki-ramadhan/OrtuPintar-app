@@ -27,6 +27,7 @@ export default function HomePage() {
   const [showAddChildModal, setShowAddChildModal] = useState(false);
   const [upcomingReminders, setUpcomingReminders] = useState([]);
   const [user, setUser] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0); // untuk trigger refresh RecentActivities
 
   const navigate = useNavigate();
 
@@ -267,6 +268,9 @@ export default function HomePage() {
       await fetchUpcomingReminders(reminder.childId);
       await fetchNotifications();
       await fetchChildProgress();
+
+      // Trigger refresh untuk RecentActivities
+      setRefreshKey((prev) => prev + 1);
 
       toast.success("Activity completed!");
     } catch (err) {
@@ -580,7 +584,7 @@ export default function HomePage() {
             )}
 
             {/* Recent Activities */}
-            <RecentAcitivities />
+            <RecentAcitivities key={refreshKey} />
           </div>
 
           {/* Right Column - Sidebar */}

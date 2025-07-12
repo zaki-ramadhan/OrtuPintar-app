@@ -7,6 +7,7 @@ import {
   cancelActivity,
   getUpcomingReminders,
   getChildProgress,
+  getRecentActivities,
 } from "../controllers/recommendActivitiesController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -29,5 +30,8 @@ router.get("/reminders/:childId", verifyToken, getUpcomingReminders);
 
 // GET: Child progress
 router.get("/progress/:childId", verifyToken, getChildProgress);
+
+// GET: Recent completed activities untuk semua anak user
+router.get("/recent", verifyToken, getRecentActivities);
 
 export default router;
