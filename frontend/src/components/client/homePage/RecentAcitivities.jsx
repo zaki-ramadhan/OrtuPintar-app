@@ -7,43 +7,30 @@ export default function RecentAcitivities() {
   const [recentActivities, setRecentActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Function untuk menentukan achievement badge
-  const getAchievementBadge = (item) => {
-    if (item.isMilestone) {
-      return { icon: "🏆", label: "Milestone" };
-    }
-
-    // Untuk non-milestone, gunakan icon category
-    return {
-      icon: getCategoryIcon(item.category),
-      label: item.category || "Activity",
-    };
-  };
-
-  // Function untuk mendapatkan warna category
+  // Function untuk mendapatkan warna category dengan background dan border yang lebih menarik
   const getCategoryColor = (category) => {
     const colors = {
-      "Motor Skills": "text-blue-600",
-      Cognitive: "text-purple-600",
-      Language: "text-green-600",
-      Social: "text-pink-600",
-      Creative: "text-orange-600",
-      Physical: "text-red-600",
+      "Motor Skills": "text-blue-800 bg-blue-100 border-blue-300",
+      Cognitive: "text-purple-800 bg-purple-100 border-purple-300",
+      Language: "text-emerald-800 bg-emerald-100 border-emerald-300",
+      Social: "text-pink-800 bg-pink-100 border-pink-300",
+      Creative: "text-orange-800 bg-orange-100 border-orange-300",
+      Physical: "text-red-800 bg-red-100 border-red-300",
     };
-    return colors[category] || "text-gray-600";
+    return colors[category] || "text-indigo-800 bg-indigo-100 border-indigo-300";
   };
 
   // Function untuk mendapatkan icon category
   const getCategoryIcon = (category) => {
     const icons = {
-      "Motor Skills": "🤹", // Juggling - motor skills
-      Cognitive: "🧠", // Brain - cognitive
-      Language: "💬", // Speech bubble - language
-      Social: "👥", // People - social
-      Creative: "🎨", // Art palette - creative
-      Physical: "💪", // Muscle - physical
+      "Motor Skills": "🤹",
+      Cognitive: "🧠",
+      Language: "💬",
+      Social: "👥",
+      Creative: "🎨",
+      Physical: "💪",
     };
-    return icons[category] || "📚"; // Default book icon
+    return icons[category] || "📚";
   };
 
   useEffect(() => {
@@ -72,26 +59,21 @@ export default function RecentAcitivities() {
   if (loading) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">
+        <h3 className="text-xl font-bold text-gray-900 mb-6">
           Recent Activities
         </h3>
         <div className="animate-pulse space-y-4">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="flex items-center justify-between p-4 border border-gray-200 rounded-xl"
+              className="flex items-center space-x-4 p-4 border border-gray-200 rounded-xl"
             >
-              <div className="flex items-center space-x-4">
-                <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
-                <div>
-                  <div className="h-4 bg-gray-300 rounded w-32 mb-2"></div>
-                  <div className="h-3 bg-gray-300 rounded w-24"></div>
-                </div>
+              <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-300 rounded w-32"></div>
+                <div className="h-3 bg-gray-300 rounded w-24"></div>
               </div>
-              <div className="text-right">
-                <div className="h-8 bg-gray-300 rounded-full w-8 mb-1 ml-auto"></div>
-                <div className="h-3 bg-gray-300 rounded w-16"></div>
-              </div>
+              <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
             </div>
           ))}
         </div>
@@ -101,7 +83,7 @@ export default function RecentAcitivities() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">
+      <h3 className="text-xl font-bold text-gray-900 mb-6">
         Recent Activities
       </h3>
 
@@ -116,45 +98,62 @@ export default function RecentAcitivities() {
       ) : (
         <div className="max-h-96 overflow-y-auto pr-2 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
           {recentActivities.map((item, index) => {
-            const badge = getAchievementBadge(item);
             const categoryColor = getCategoryColor(item.category);
+            const categoryIcon = getCategoryIcon(item.category);
 
             return (
               <div
                 key={item.id || index}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                className="flex items-center space-x-4 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center space-x-4">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      item.isMilestone ? "bg-yellow-500" : "bg-emerald-500"
-                    }`}
-                  ></div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">
+                {/* Activity Icon */}
+                <div className="flex-shrink-0">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${item.isMilestone
+                    ? "bg-gradient-to-br from-yellow-100 to-orange-100 border-2 border-yellow-300"
+                    : "bg-slate-100"
+                    }`}>
+                    {item.isMilestone ? "🏆" : categoryIcon}
+                  </div>
+                </div>                                {/* Activity Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h4 className="font-semibold text-gray-900 text-sm truncate">
                       {item.activity}
                     </h4>
-                    <p className="text-sm text-gray-500">
-                      {item.child} • {item.time}
-                      {item.isMilestone && (
-                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                          🏆 Milestone
-                        </span>
-                      )}
-                    </p>
+                    {item.isMilestone && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-400 text-white shadow-sm flex-shrink-0">
+                        <span className="mr-1">🏆</span>
+                        Milestone
+                      </span>
+                    )}
                   </div>
-                </div>
-                <div className="text-right flex flex-col items-end">
-                  {/* Achievement Badge with Category Icon */}
-                  <div className="flex items-center space-x-1 mb-1">
-                    <span className="text-2xl" title={badge.label}>
-                      {badge.icon}
+
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-500">
+                      {item.child}
+                    </span>
+                    <span className="text-xs text-gray-400">•</span>
+                    <span className="text-xs text-gray-500">
+                      {item.time}
                     </span>
                   </div>
-                  {/* Category Label */}
-                  <p className={`text-xs font-medium ${categoryColor}`}>
-                    {item.category || "Activity"}
-                  </p>
+                </div>
+
+                {/* Category Badge and Status - Right side */}
+                <div className="flex items-center space-x-3">
+                  {item.category && (
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${categoryColor}`}>
+                      {item.category}
+                    </span>
+                  )}
+
+                  {/* Status indicator */}
+                  <div className="flex-shrink-0">
+                    <div
+                      className="w-2 h-2 bg-emerald-500 rounded-full"
+                      title="Completed"
+                    ></div>
+                  </div>
                 </div>
               </div>
             );

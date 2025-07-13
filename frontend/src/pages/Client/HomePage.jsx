@@ -22,12 +22,13 @@ export default function HomePage() {
   const [activeChild, setActiveChild] = useState(0);
   const [selectedTab, setSelectedTab] = useState("overview");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [notifications, setNotifications] = useState([]);
-  const [activities, setActivities] = useState([]);
+  const [notifications, setNotifications] = useState([]); const [activities, setActivities] = useState([]);
   const [children, setChildren] = useState([]);
   const [showAddChildModal, setShowAddChildModal] = useState(false);
   const [upcomingReminders, setUpcomingReminders] = useState([]);
-  const [user, setUser] = useState(null); const [refreshKey, setRefreshKey] = useState(0); // to trigger refresh RecentActivities
+  const [user, setUser] = useState(null);
+  const [allChildReminders, setAllChildReminders] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0); // to trigger refresh RecentActivities
   const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0); // to trigger refresh WeeklySummary
 
   const navigate = useNavigate();
@@ -317,6 +318,10 @@ export default function HomePage() {
     }
   };
 
+  const handleViewAllAchievements = () => {
+    navigate("/log-activity");
+  };
+
   const handleCompleteReminder = async (reminder) => {
     try {
       const token = localStorage.getItem("token");
@@ -544,32 +549,68 @@ export default function HomePage() {
 
     // Fallback: return 0 jika tidak ada data
     return 0;
+  });  // Ambil semua milestone activity yang sesuai dengan usia anak
+  const milestoneActivities = activities.filter((a) => {
+    if (!a.isMilestone || !childAgeInYears) return false;
+    return (
+      childAgeInYears >= a.age_group_min &&
+      childAgeInYears <= a.age_group_max
+    );
   });
 
-  // Ambil semua milestone activity
-  const milestoneActivities = activities.filter((a) => a.isMilestone);
-  // Ambil reminders milestone yang sudah selesai untuk anak aktif
-  const completedMilestoneReminders = childRemindersToday.filter(
-    (rem) =>
-      rem.completed && milestoneActivities.some((a) => a.id === rem.activityId)
+  // Fetch all reminders for current child (not just today)
+  useEffect(() => {
+    const fetchAllReminders = async () => {
+      if (!currentChild?.id) return;
+
+      const token = localStorage.getItem("token");
+      try {
+        const response = await axios.get(
+          `${API_URL}/log-activities/child/${currentChild.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setAllChildReminders(response.data.activities || []);
+      } catch (err) {
+        console.error("Error fetching all reminders:", err);
+        setAllChildReminders([]);
+      }
+    };
+
+    fetchAllReminders();
+  }, [currentChild?.id]);
+
+  // Cari milestone yang sudah pernah dikerjakan (in_progress atau completed)
+  const workedMilestoneIds = new Set(
+    allChildReminders
+      .filter(reminder =>
+        milestoneActivities.some(milestone => milestone.id === reminder.activityId) &&
+        (reminder.status === 'in_progress' || reminder.status === 'completed')
+      )
+      .map(reminder => reminder.activityId)
   );
-  // Recent achievements: milestone yang sudah selesai, urut terbaru
-  const recentAchievements = completedMilestoneReminders
-    .map((rem) => {
-      const act = activities.find((a) => a.id === rem.activityId);
+
+  // Next milestones: milestone yang belum pernah dikerjakan sama sekali
+  const nextMilestones = milestoneActivities.filter(
+    milestone => !workedMilestoneIds.has(milestone.id)
+  );
+
+  // Recent achievements: milestone yang sudah completed, urut terbaru
+  const recentAchievements = allChildReminders
+    .filter(reminder =>
+      reminder.status === 'completed' &&
+      milestoneActivities.some(milestone => milestone.id === reminder.activityId)
+    )
+    .map((reminder) => {
+      const milestone = milestoneActivities.find(m => m.id === reminder.activityId);
       return {
-        name: act?.name || act?.title || "-",
-        date: rem.date,
+        name: milestone?.name || milestone?.title || "-",
+        date: reminder.completed_at || reminder.updated_at,
+        milestone: milestone
       };
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
-  // Next milestones: milestone yang belum pernah diselesaikan oleh anak aktif
-  const completedMilestoneIds = new Set(
-    completedMilestoneReminders.map((rem) => rem.activityId)
-  );
-  const nextMilestones = milestoneActivities.filter(
-    (a) => !completedMilestoneIds.has(a.id)
-  );
 
   // Effect untuk fetch reminders ketika child berubah
   useEffect(() => {
@@ -620,8 +661,7 @@ export default function HomePage() {
         {/* Main Content Grid - Responsive Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Main Dashboard */}
-          <div className="xl:col-span-2 space-y-4 sm:space-y-6">
-            {/* Current Child Overview */}
+          <div className="xl:col-span-2 space-y-4 sm:space-y-6">            {/* Current Child Overview */}
             {currentChild && (
               <CurrentChildOverview
                 currentChild={{
@@ -631,7 +671,15 @@ export default function HomePage() {
                     ? calculateAge(currentChild.birthDate)
                     : "-",
                   progress: progressToday,
+                  nextMilestone: nextMilestones.length > 0
+                    ? nextMilestones[0]
+                    : null,
+                  recentAchievement: recentAchievements.length > 0
+                    ? recentAchievements[0]
+                    : null,
                 }}
+                onStartMilestone={handleStartActivity}
+                onViewAllAchievements={handleViewAllAchievements}
               />
             )}
 
