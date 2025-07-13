@@ -30,6 +30,7 @@ export default function HomePage() {
   const [allChildReminders, setAllChildReminders] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0); // to trigger refresh RecentActivities
   const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0); // to trigger refresh WeeklySummary
+  const [hideCompletedReminders, setHideCompletedReminders] = useState(false); // for client-side filtering
 
   const navigate = useNavigate();
 
@@ -320,9 +321,7 @@ export default function HomePage() {
 
   const handleViewAllAchievements = () => {
     navigate("/log-activity");
-  };
-
-  const handleCompleteReminder = async (reminder) => {
+  }; const handleCompleteReminder = async (reminder) => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
@@ -345,13 +344,15 @@ export default function HomePage() {
       setRefreshKey((prev) => prev + 1);
       setWeeklyRefreshKey((prev) => prev + 1);
 
+      // Don't reset hideCompletedReminders here to maintain user's choice
+      // The newly completed activity will be handled by the filtering logic
+
       toast.success("Activity completed!");
     } catch (err) {
       console.error("Complete activity error:", err);
       toast.error("Failed to complete activity");
     }
   };
-
   // Handler: Batalkan activity dari upcomingReminders
   const handleCancelReminder = async (reminder) => {
     try {
@@ -376,6 +377,17 @@ export default function HomePage() {
       console.error("Cancel activity error:", err);
       toast.error("Failed to cancel activity");
     }
+  };  // Handler: Clear all completed reminders (client-side only)
+  const handleClearCompletedReminders = () => {
+    const completedCount = upcomingReminders.filter(r => r.completed).length;
+    setHideCompletedReminders(true);
+    toast.success(`${completedCount} completed reminder${completedCount > 1 ? 's' : ''} cleared from view!`);
+  };
+
+  // Handler: Show all reminders again
+  const handleShowAllReminders = () => {
+    setHideCompletedReminders(false);
+    toast.success("All reminders are now visible!");
   };
 
   const unreadNotifications = notifications.filter(
@@ -508,7 +520,6 @@ export default function HomePage() {
       childAgeInYears <= activity.age_group_max
     );
   });
-
   // Filter reminders untuk anak & hari ini
   const today = new Date().toISOString().split("T")[0];
   console.log("Today date:", today);
@@ -516,7 +527,10 @@ export default function HomePage() {
   console.log("All upcoming reminders:", upcomingReminders);
   // Since backend already filters based on child and today's date,
   // we directly use upcomingReminders as childRemindersToday
-  const childRemindersToday = upcomingReminders;
+  // Apply client-side filtering to hide completed reminders if requested
+  const childRemindersToday = hideCompletedReminders
+    ? upcomingReminders.filter(reminder => !reminder.completed)
+    : upcomingReminders;
 
   const completedCount = childRemindersToday.filter(
     (rem) => rem.completed
@@ -580,7 +594,6 @@ export default function HomePage() {
 
     fetchAllReminders();
   }, [currentChild?.id]);
-
   // Cari milestone yang sudah pernah dikerjakan (in_progress atau completed)
   const workedMilestoneIds = new Set(
     allChildReminders
@@ -591,9 +604,21 @@ export default function HomePage() {
       .map(reminder => reminder.activityId)
   );
 
-  // Next milestones: milestone yang belum pernah dikerjakan sama sekali
+  // Tambahkan milestone yang sudah ada di upcoming reminders hari ini ke daftar yang sudah dikerjakan
+  const todayMilestoneIds = new Set(
+    childRemindersToday
+      .filter(reminder =>
+        milestoneActivities.some(milestone => milestone.id === reminder.activityId)
+      )
+      .map(reminder => reminder.activityId)
+  );
+
+  // Gabungkan milestone yang sudah dikerjakan dan yang ada di upcoming reminders hari ini
+  const unavailableMilestoneIds = new Set([...workedMilestoneIds, ...todayMilestoneIds]);
+
+  // Next milestones: milestone yang belum pernah dikerjakan dan tidak ada di upcoming reminders hari ini
   const nextMilestones = milestoneActivities.filter(
-    milestone => !workedMilestoneIds.has(milestone.id)
+    milestone => !unavailableMilestoneIds.has(milestone.id)
   );
 
   // Recent achievements: milestone yang sudah completed, urut terbaru
@@ -611,7 +636,6 @@ export default function HomePage() {
       };
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
-
   // Effect untuk fetch reminders ketika child berubah
   useEffect(() => {
     console.log("🔄 useEffect triggered - currentChild?.id:", currentChild?.id);
@@ -619,6 +643,8 @@ export default function HomePage() {
       console.log("✅ Calling fetchUpcomingReminders and fetchChildProgress");
       fetchUpcomingReminders();
       fetchChildProgress();
+      // Reset hiding completed reminders when child changes
+      setHideCompletedReminders(false);
     } else {
       console.log("❌ No currentChild.id, skipping fetch");
     }
@@ -716,13 +742,15 @@ export default function HomePage() {
               onMarkAsRead={handleMarkAsRead}
               onMarkAllAsRead={handleMarkAllAsRead}
               onClearAll={handleClearNotifications}
-            />
-
-            {/* Upcoming Reminders */}
+            />            {/* Upcoming Reminders */}
             <UpcomingReminders
               reminders={childRemindersToday}
               onComplete={handleCompleteReminder}
               onCancel={handleCancelReminder}
+              onClearCompleted={handleClearCompletedReminders}
+              hideCompletedReminders={hideCompletedReminders}
+              allReminders={upcomingReminders}
+              onShowAll={handleShowAllReminders}
             />
 
             {/* Expert Support */}
