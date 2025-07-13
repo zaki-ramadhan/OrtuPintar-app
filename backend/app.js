@@ -10,6 +10,7 @@ import childRoutes from "./routes/childRoutes.js";
 import recommendActivitiesRoutes from "./routes/recommendActivitiesRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import debugRoutes from "./routes/debugRoutes.js";
+import milestoneRoutes from "./routes/milestoneRoutes.js";
 
 const app = express();
 
@@ -28,5 +29,6 @@ app.use("/api/children", childRoutes);
 app.use("/api/activities", recommendActivitiesRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/debug", debugRoutes);
+app.use("/api/milestones", milestoneRoutes);
 
 export default app;
