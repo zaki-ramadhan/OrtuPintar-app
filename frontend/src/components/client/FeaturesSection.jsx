@@ -115,7 +115,7 @@ export default function FeaturesSection() {
 								key={
 									index
 								}
-								className="group relative p-8 rounded-3xl border border-gray-100 hover:border-gray-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white"
+								className="group relative p-8 rounded-3xl border border-gray-100 hover:border-gray-300 hover:shadow-2xl hover:shadow-gray-200 transition-all duration-300 hover:-translate-y-2 bg-white"
 							>
 								<div
 									className={`w-16 h-16 bg-gradient-to-br from-${feature.color}-100 to-${feature.color}-200 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform text-2xl`}

@@ -87,9 +87,8 @@ export default function AddChildModal({
     } else if (months === 0) {
       return years === 1 ? `${years} year` : `${years} years`;
     } else {
-      return `${years} ${years === 1 ? "year" : "years"}, ${months} ${
-        months === 1 ? "month" : "months"
-      }`;
+      return `${years} ${years === 1 ? "year" : "years"}, ${months} ${months === 1 ? "month" : "months"
+        }`;
     }
   };
 
@@ -144,9 +143,9 @@ export default function AddChildModal({
         gender: formData.gender, // 'male' atau 'female'
         avatar: formData.avatar,
       });
-      // ✅ Tidak ada alert di sini
-      // ✅ Tidak ada onClose di sini
-      // HomePage akan handle toast, update state & close modal
+      // ✅ No alert here
+      // ✅ No onClose here
+      // HomePage will handle toast, update state & close modal
     } catch (error) {
       console.error("Error adding child:", error);
       // Toast error juga sebaiknya di HomePage biar konsisten
@@ -265,17 +264,16 @@ export default function AddChildModal({
                 {[1, 2, 3, 4].map((step) => (
                   <div
                     key={step}
-                    className={`w-3 h-3 rounded-full transition-colors ${
-                      step === 1
+                    className={`w-3 h-3 rounded-full transition-colors ${step === 1
                         ? "bg-emerald-500"
                         : step === 2 && formData.name
-                        ? "bg-emerald-500"
-                        : step === 3 && formData.birthDate
-                        ? "bg-emerald-500"
-                        : step === 4 && formData.avatar
-                        ? "bg-emerald-500"
-                        : "bg-gray-200"
-                    }`}
+                          ? "bg-emerald-500"
+                          : step === 3 && formData.birthDate
+                            ? "bg-emerald-500"
+                            : step === 4 && formData.avatar
+                              ? "bg-emerald-500"
+                              : "bg-gray-200"
+                      }`}
                   />
                 ))}
               </div>
@@ -292,11 +290,10 @@ export default function AddChildModal({
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all ${
-                  errors.name
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all ${errors.name
                     ? "border-red-300 bg-red-50"
                     : "border-gray-200 focus:border-emerald-500"
-                }`}
+                  }`}
                 placeholder="Enter your child's beautiful name"
                 autoComplete="off"
                 disabled={isSubmitting}
@@ -333,11 +330,10 @@ export default function AddChildModal({
                 value={formData.birthDate}
                 onChange={handleChange}
                 max={new Date().toISOString().split("T")[0]}
-                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all ${
-                  errors.birthDate
+                className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all ${errors.birthDate
                     ? "border-red-300 bg-red-50"
                     : "border-gray-200 focus:border-emerald-500"
-                }`}
+                  }`}
                 disabled={isSubmitting}
               />
               {errors.birthDate && (
@@ -397,11 +393,10 @@ export default function AddChildModal({
                         gender,
                       }))
                     }
-                    className={`p-4 rounded-xl border-2 transition-all font-medium ${
-                      formData.gender === gender
+                    className={`p-4 rounded-xl border-2 transition-all font-medium ${formData.gender === gender
                         ? "border-emerald-400 bg-emerald-50 text-emerald-700"
                         : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50"
-                    }`}
+                      }`}
                     disabled={isSubmitting}
                   >
                     <div className="flex items-center justify-center space-x-2">
@@ -445,11 +440,10 @@ export default function AddChildModal({
                     key={index}
                     type="button"
                     onClick={() => handleAvatarSelect(option.emoji)}
-                    className={`relative p-3 rounded-xl border-2 transition-all hover:scale-105 ${
-                      formData.avatar === option.emoji
+                    className={`relative p-3 rounded-xl border-2 transition-all hover:scale-105 ${formData.avatar === option.emoji
                         ? "border-emerald-400 bg-emerald-50 scale-105"
                         : "border-gray-200 hover:border-emerald-300 hover:bg-emerald-50"
-                    }`}
+                      }`}
                     disabled={isSubmitting}
                     title={option.label}
                   >

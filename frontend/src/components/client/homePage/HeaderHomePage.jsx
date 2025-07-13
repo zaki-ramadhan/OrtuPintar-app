@@ -46,12 +46,12 @@ export default function HeaderHomePage() {
           {/* Profile */}
           <div className="flex items-center space-x-4">
             {/* Notification */}
-            <div className="relative">
+            {/* <div className="relative">
               <button className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors">
                 <span className="text-sm">🔔</span>
               </button>
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
-            </div>
+            </div> */}
 
             {/* User Menu */}
             <div className="relative">

@@ -27,16 +27,14 @@ export default function RightSide() {
 
       // Simpan user & token
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", token); // << Tambahkan ini!
-
-      toast.success("Login berhasil! Tunggu sebentar...");
+      localStorage.setItem("token", token); // << Tambahkan ini!      toast.success("Login successful! Please wait...");
       setTimeout(() => {
         navigate("/home");
       }, 1800);
     } catch (error) {
-      console.error("Login gagal:", error);
+      console.error("Login failed:", error);
       toast.error(
-        error.response?.data?.message || "Login gagal. Silakan coba lagi."
+        error.response?.data?.message || "Login failed. Please try again."
       );
     } finally {
       setTimeout(() => setLoading(false), 2000);

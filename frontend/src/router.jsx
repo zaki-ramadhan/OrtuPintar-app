@@ -7,7 +7,9 @@ import DashboardPage from "@/pages/Admin/DashboardPage";
 import RegisterPage from "@/pages/Client/RegisterPage";
 import AdminLoginPage from "@/pages/Admin/AdminLoginPage";
 import UserAccount from "./pages/Client/UserAccount";
+import NotFoundPage from "@/pages/Client/NotFoundPage";
 import ProtectedAdminRoute from "@/components/admin/auth/ProtectedAdminRoute";
+import ErrorBoundary from "@/components/client/ErrorBoundary";
 
 const router = createBrowserRouter([
   {
@@ -42,13 +44,17 @@ const router = createBrowserRouter([
       </ProtectedAdminRoute>
     ),
   },
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
 ]);
 
 export default function AppRouter() {
   return (
-    <>
+    <ErrorBoundary>
       <Toaster position="top-right" />
       <RouterProvider router={router} />
-    </>
+    </ErrorBoundary>
   );
 }

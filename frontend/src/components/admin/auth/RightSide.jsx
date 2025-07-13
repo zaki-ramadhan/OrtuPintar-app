@@ -47,7 +47,7 @@ export default function RightSide() {
           localStorage.setItem("adminRememberMe", "true");
         }
 
-        toast.success(data.message || "Login berhasil! Welcome back, Admin.");
+        toast.success(data.message || "Login successful! Welcome back, Admin.");
 
         setTimeout(() => {
           navigate("/back/dashboard");

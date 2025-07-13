@@ -2,56 +2,112 @@
 @import "tailwindcss";
 
 @layer base {
-  body {
-    font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-    line-height: 1.6;
-    @apply bg-slate-50 text-slate-900;
-  }
+	body {
+		font-family: "Plus Jakarta Sans",
+			system-ui,
+			-apple-system,
+			sans-serif;
+		line-height: 1.6;
+		@apply bg-slate-50 text-slate-900;
+	}
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: "Fredoka", "Plus Jakarta Sans", sans-serif;
-    line-height: 1.2;
-  }
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-family: "Fredoka",
+			"Plus Jakarta Sans",
+			sans-serif;
+		line-height: 1.2;
+	}
 }
 
 @layer components {
-  .container-custom {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-  }
+	.container-custom {
+		@apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+	}
 
-  .btn-primary {
-    @apply bg-gradient-to-r from-orange-400 to-pink-500 hover:from-orange-500 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl;
-  }
+	.btn-primary {
+		@apply bg-gradient-to-r from-orange-400 to-pink-500 hover:from-orange-500 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl;
+	}
 
-  .btn-secondary {
-    @apply bg-white text-slate-700 border-2 border-slate-200 hover:border-orange-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg;
-  }
+	.btn-secondary {
+		@apply bg-white text-slate-700 border-2 border-slate-200 hover:border-orange-300 font-semibold py-3 px-6 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg;
+	}
 
-  .card-feature {
-    @apply bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-slate-100;
-  }
+	.card-feature {
+		@apply bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-slate-100;
+	}
 }
 
 @layer utilities {
-  .text-gradient {
-    @apply bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 bg-clip-text text-transparent;
-  }
+	.text-gradient {
+		@apply bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600 bg-clip-text text-transparent;
+	}
 
-  .bg-pattern {
-    background-image: radial-gradient(
-        circle at 25% 25%,
-        rgba(251, 146, 60, 0.1) 0%,
-        transparent 50%
-      ),
-      radial-gradient(
-        circle at 75% 75%,
-        rgba(236, 72, 153, 0.1) 0%,
-        transparent 50%
-      );
-  }
+	.bg-pattern {
+		background-image: radial-gradient(
+				circle
+					at
+					25%
+					25%,
+				rgba(
+						251,
+						146,
+						60,
+						0.1
+					)
+					0%,
+				transparent
+					50%
+			),
+			radial-gradient(
+				circle
+					at
+					75%
+					75%,
+				rgba(
+						236,
+						72,
+						153,
+						0.1
+					)
+					0%,
+				transparent
+					50%
+			);
+	}
+	.animate-fadeIn {
+		animation: fadeIn 0.3s
+			ease-out;
+	}
+
+	.scrollbar-hide {
+		/* Hide scrollbar for Chrome, Safari and Opera */
+		-webkit-overflow-scrolling: touch;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+
+		/* Hide scrollbar for IE, Edge and Firefox */
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: scale(
+				0.95
+			);
+		}
+		to {
+			opacity: 1;
+			transform: scale(
+				1
+			);
+		}
+	}
 }

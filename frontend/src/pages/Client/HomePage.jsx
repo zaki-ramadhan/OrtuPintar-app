@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
 import ChildSelector from "@/components/client/homePage/ChildSelector";
@@ -26,9 +27,8 @@ export default function HomePage() {
   const [children, setChildren] = useState([]);
   const [showAddChildModal, setShowAddChildModal] = useState(false);
   const [upcomingReminders, setUpcomingReminders] = useState([]);
-  const [user, setUser] = useState(null);
-  const [refreshKey, setRefreshKey] = useState(0); // untuk trigger refresh RecentActivities
-  const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0); // untuk trigger refresh WeeklySummary
+  const [user, setUser] = useState(null); const [refreshKey, setRefreshKey] = useState(0); // to trigger refresh RecentActivities
+  const [weeklyRefreshKey, setWeeklyRefreshKey] = useState(0); // to trigger refresh WeeklySummary
 
   const navigate = useNavigate();
 
@@ -165,9 +165,9 @@ export default function HomePage() {
         prev.map((notification) =>
           notification.id === notificationId
             ? {
-                ...notification,
-                read: true,
-              }
+              ...notification,
+              read: true,
+            }
             : notification
         )
       );
@@ -246,9 +246,7 @@ export default function HomePage() {
         }
       );
 
-      console.log("✅ Start activity response:", startResponse.data);
-
-      // Fetch updated reminders dengan childId yang eksplisit
+      console.log("✅ Start activity response:", startResponse.data);      // Fetch updated reminders with explicit childId
       console.log("🔄 Fetching updated reminders...");
       await fetchUpcomingReminders(currentChild.id);
 
@@ -282,9 +280,7 @@ export default function HomePage() {
       // Fetch updated data
       await fetchUpcomingReminders(reminder.childId);
       await fetchNotifications();
-      await fetchChildProgress();
-
-      // Trigger refresh untuk RecentActivities dan WeeklySummary
+      await fetchChildProgress();      // Trigger refresh for RecentActivities and WeeklySummary
       setRefreshKey((prev) => prev + 1);
       setWeeklyRefreshKey((prev) => prev + 1);
 
@@ -342,9 +338,8 @@ export default function HomePage() {
     } else if (months === 0) {
       return `${years} year${years > 1 ? "s" : ""}`;
     } else {
-      return `${years} year${years > 1 ? "s" : ""}, ${months} month${
-        months > 1 ? "s" : ""
-      }`;
+      return `${years} year${years > 1 ? "s" : ""}, ${months} month${months > 1 ? "s" : ""
+        }`;
     }
   }
 
@@ -360,8 +355,7 @@ export default function HomePage() {
   }
 
   const currentChild = children[activeChild] || null;
-
-  // Helper functions untuk fetch data
+  // Helper functions to fetch data
   const fetchNotifications = async () => {
     const token = localStorage.getItem("token");
     const userData = JSON.parse(localStorage.getItem("user"));
@@ -460,9 +454,8 @@ export default function HomePage() {
   console.log("Today date:", today);
   console.log("Current child ID:", currentChild?.id);
   console.log("All upcoming reminders:", upcomingReminders);
-
-  // Karena backend sudah filter berdasarkan child dan tanggal hari ini,
-  // kita langsung gunakan upcomingReminders sebagai childRemindersToday
+  // Since backend already filters based on child and today's date,
+  // we directly use upcomingReminders as childRemindersToday
   const childRemindersToday = upcomingReminders;
 
   const completedCount = childRemindersToday.filter(
@@ -541,8 +534,8 @@ export default function HomePage() {
             {currentDate.getHours() < 12
               ? "Morning"
               : currentDate.getHours() < 17
-              ? "Afternoon"
-              : "Evening"}
+                ? "Afternoon"
+                : "Evening"}
             ,{user?.name ? ` ${user.name}` : "-"}
             👋
           </h2>
@@ -592,12 +585,11 @@ export default function HomePage() {
                 }}
                 onStartActivity={handleStartActivity}
               />
-            </div>
-            {filteredActivities.length === 0 && childAgeInYears === 0 && (
+            </div>            {filteredActivities.length === 0 && childAgeInYears === 0 && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4 mt-2 text-center">
-                Saat ini belum ada saran aktivitas untuk anak usia di bawah 1
-                tahun. Silakan konsultasi dengan ahli atau cek milestone
-                perkembangan bayi.
+                Currently there are no activity suggestions for children under 1
+                year old. Please consult with experts or check baby development
+                milestones.
               </div>
             )}
 
