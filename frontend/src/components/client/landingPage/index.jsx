@@ -1,0 +1,12 @@
+export { default as TopBar } from './TopBar';
+export { default as HeroSection } from './HeroSection';
+export { default as SocialProofSection } from './SocialProofSection';
+export { default as StatsSection } from './StatsSection';
+export { default as FeaturesSection } from './FeaturesSection';
+export { default as DevelopmentSection } from './DevelopmentSection';
+export { default as HowItWorksSection } from './HowItWorksSection';
+export { default as TestimonialsSection } from './TestimonialsSection';
+export { default as PricingSection } from './PricingSection';
+export { default as FaqSection } from './FaqSection';
+export { default as ExpertSupportSection } from './ExpertSupportSection';
+export { default as Footer } from './Footer';

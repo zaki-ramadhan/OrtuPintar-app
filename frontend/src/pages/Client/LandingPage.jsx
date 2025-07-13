@@ -1,16 +1,18 @@
-import TopBar from "@/components/client/TopBar";
-import HeroSection from "@/components/client/HeroSection";
-import SocialProofSection from "@/components/client/SocialProofSection";
-import StatsSection from "@/components/client/StatsSection";
-import FeaturesSection from "@/components/client/FeaturesSection";
-import DevelopmentSection from "@/components/client/DevelopmentSection";
-import HowItWorksSection from "@/components/client/HowItWorksSection";
-import TestimonialsSection from "@/components/client/TestimonialsSection";
-import PricingSection from "@/components/client/PricingSection";
-import FaqSection from "@/components/client/FaqSection";
-import ExpertSupportSection from "@/components/client/ExpertSupportSection";
-import Footer from "@/components/client/Footer";
 import { useEffect } from "react";
+import {
+	TopBar,
+	HeroSection,
+	SocialProofSection,
+	StatsSection,
+	FeaturesSection,
+	DevelopmentSection,
+	HowItWorksSection,
+	TestimonialsSection,
+	PricingSection,
+	FaqSection,
+	ExpertSupportSection,
+	Footer
+} from "@/components/client/landingPage";
 
 export default function LandingPage() {
 	useEffect(() => {
