@@ -7,6 +7,7 @@ import DashboardPage from "@/pages/Admin/DashboardPage";
 import RegisterPage from "@/pages/Client/RegisterPage";
 import AdminLoginPage from "@/pages/Admin/AdminLoginPage";
 import UserAccount from "./pages/Client/UserAccount";
+import ReportsPage from "./pages/Client/ReportsPage";
 import NotFoundPage from "@/pages/Client/NotFoundPage";
 import ProtectedAdminRoute from "@/components/admin/auth/ProtectedAdminRoute";
 import ErrorBoundary from "@/components/client/ErrorBoundary";
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
   {
     path: "/my-account",
     element: <UserAccount />,
+  },
+  {
+    path: "/reports",
+    element: <ReportsPage />,
   },
   {
     path: "/admin/login",

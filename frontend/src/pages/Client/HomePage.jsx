@@ -8,13 +8,13 @@ import RecommendedActivities from "@/components/client/homePage/RecommendedActiv
 import RecentAcitivities from "@/components/client/homePage/RecentAcitivities";
 import Notifications from "@/components/client/homePage/Notifications";
 import UpcomingReminders from "@/components/client/homePage/UpcomingReminders";
-import HeaderHomePage from "@/components/client/homePage/HeaderHomePage";
 import ExpertSupport from "@/components/client/homePage/ExpertSupport";
 import WeeklySummary from "@/components/client/homePage/WeeklySummary";
 import AddChildModal from "@/components/client/homePage/AddChildModal";
 import { Link, useNavigate } from "react-router";
 import axios from "axios";
 import toast from "react-hot-toast";
+import HeaderClient from "@/components/client/HeaderClient";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -523,7 +523,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <HeaderHomePage />
+      <HeaderClient />
 
       {/* Main Container - Responsive padding */}
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
@@ -646,12 +646,10 @@ export default function HomePage() {
                 Start Activities
               </button>
             </div>
-          </div>
-
-          {/* View Reports Card */}
+          </div>          {/* View Reports Card */}
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-purple-200">
             <div className="text-center">
-              <div className="text-4xl sm:text-5xl mb-4">❓</div>
+              <div className="text-4xl sm:text-5xl mb-4">📊</div>
               <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
                 View Reports
               </h3>
@@ -659,9 +657,12 @@ export default function HomePage() {
                 Monitor your child's progress with detailed reports and
                 developmental insights.
               </p>
-              <button className="bg-purple-500 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg sm:rounded-xl hover:bg-purple-600 transition-colors font-semibold text-sm sm:text-base w-full sm:w-auto">
+              <Link
+                to="/reports"
+                className="inline-block bg-purple-500 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg sm:rounded-xl hover:bg-purple-600 transition-colors font-semibold text-sm sm:text-base w-full sm:w-auto"
+              >
                 View Reports
-              </button>
+              </Link>
             </div>
           </div>
         </div>

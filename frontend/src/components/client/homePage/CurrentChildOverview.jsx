@@ -4,16 +4,16 @@ export default function CurrentChildOverview({ currentChild }) {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
           <div className="text-4xl">{currentChild.avatar}</div>
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900">
+          <div className="space-y-1">
+            <h3 className="text-xl lg:text-2xl font-bold text-gray-900">
               {currentChild.name}
               's Progress
             </h3>
             <p className="text-gray-500">{currentChild.age}</p>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-3xl font-bold text-emerald-600">
+        <div className="text-right space-y-1">
+          <div className="text-2xl font-bold text-emerald-600">
             {currentChild.progress}%
           </div>
           <p className="text-sm text-gray-500">Overall Progress</p>
