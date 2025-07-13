@@ -62,10 +62,66 @@ export default function HomePage() {
         console.error("Error fetching children:", err);
         setChildren([]); // fallback biar gak undefined
       }
-    };
+    }; fetchChildren();
+  }, []);  // Effect untuk mengambil progress semua anak setelah data children tersedia
+  useEffect(() => {
+    if (children.length > 0) {
+      const fetchProgress = async () => {
+        const token = localStorage.getItem("token");
+        try {
+          // Update progress untuk setiap anak dengan state update yang aman
+          const progressPromises = children.map(async (child) => {
+            try {
+              // Ambil reminders untuk anak ini hari ini
+              const today = new Date().toISOString().split("T")[0];
+              const remindersResponse = await axios.get(
+                `${API_URL}/activities/reminders/${child.id}?date=${today}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
 
-    fetchChildren();
-  }, []);
+              const childReminders = remindersResponse.data.reminders || [];
+              const completedCount = childReminders.filter(rem => rem.completed).length;
+              const progressPercentage = childReminders.length > 0
+                ? Math.round((completedCount / childReminders.length) * 100)
+                : 0;
+
+              return {
+                childId: child.id,
+                progress: progressPercentage
+              };
+            } catch (err) {
+              console.error(`Error fetching progress for child ${child.id}:`, err);
+              return {
+                childId: child.id,
+                progress: Number(child.progress) || 0
+              };
+            }
+          });
+
+          const progressResults = await Promise.all(progressPromises);
+
+          // Update children state hanya sekali dengan semua progress baru
+          setChildren(prevChildren =>
+            prevChildren.map(child => {
+              const progressData = progressResults.find(p => p.childId === child.id);
+              return {
+                ...child,
+                progress: progressData ? progressData.progress : (Number(child.progress) || 0)
+              };
+            })
+          );
+        } catch (err) {
+          console.error("Error fetching all children progress:", err);
+        }
+      };
+
+      fetchProgress();
+    }
+  }, [children.length]); // Hanya trigger saat jumlah children berubah, bukan saat children object berubah
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -416,7 +472,6 @@ export default function HomePage() {
       console.error("❌ Error status:", err.response?.status);
     }
   };
-
   const fetchChildProgress = async () => {
     if (!currentChild?.id) return;
 
@@ -473,14 +528,22 @@ export default function HomePage() {
   const availableActivities = filteredActivities.filter(
     (act) => !activityIdsInReminders.includes(act.id)
   );
-
-  // Hitung progress harian untuk anak aktif saja
-  // (karena upcomingReminders sekarang hanya untuk anak aktif)
+  // Hitung progress harian untuk semua anak
   const progressList = children.map((child) => {
+    // Jika ini anak yang aktif, gunakan progressToday yang sudah dihitung
     if (child.id === currentChild?.id) {
       return progressToday;
     }
-    return 0; // Untuk anak lain, kita bisa fetch secara terpisah jika diperlukan
+
+    // Untuk anak lain, hitung progress berdasarkan data yang tersimpan atau default
+    // Kita bisa menggunakan data progress yang tersimpan di child object
+    // atau melakukan perhitungan sederhana berdasarkan data yang ada
+    if (child.progress !== undefined && child.progress !== null) {
+      return Number(child.progress) || 0;
+    }
+
+    // Fallback: return 0 jika tidak ada data
+    return 0;
   });
 
   // Ambil semua milestone activity

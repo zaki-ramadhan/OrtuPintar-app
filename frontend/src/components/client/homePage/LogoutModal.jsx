@@ -2,23 +2,15 @@ import React from "react";
 
 export default function LogoutModal({ open, onClose, onLogout }) {
 	if (!open) return null;
+
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-			<div className="bg-white rounded-xl shadow-2xl w-full max-w-xs p-6 relative animate-fadeIn border-t-8 border-red-500">
-				<button
-					className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-lg"
-					onClick={
-						onClose
-					}
-					aria-label="Close"
-					type="button"
-				>
-					&times;
-				</button>
-				<div className="flex flex-col items-center text-center">
-					<div className="bg-red-100 border-2 border-red-400 rounded-full w-14 h-14 flex items-center justify-center mb-3 shadow">
+		<div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+			<div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl border border-gray-200">
+				{/* Header */}
+				<div className="text-center">
+					<div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
 						<svg
-							className="w-7 h-7 text-red-500"
+							className="h-6 w-6 text-red-600"
 							fill="none"
 							stroke="currentColor"
 							strokeWidth="2"
@@ -31,57 +23,43 @@ export default function LogoutModal({ open, onClose, onLogout }) {
 							/>
 						</svg>
 					</div>
-					<h2 className="text-xl font-semibold text-red-600 mb-1 tracking-tight">
-						Logout
-					</h2>
-					<p className="text-gray-700 mb-4 text-sm leading-relaxed">
-						Are
-						you
-						sure
-						you
-						want
-						to{" "}
-						<span className="text-red-600 font-bold">
-							logout
-						</span>
-
-						?
+					<h3 className="text-lg font-semibold text-gray-900 mb-2">
+						Confirm Logout
+					</h3>
+					<p className="text-sm text-gray-600">
+						Are you sure you want to logout from your account? You will need to sign in again to access your dashboard.
 					</p>
-					<div className="flex gap-2 w-full mt-1">
-						<button
-							className="flex-1 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-sm font-semibold border border-gray-200"
-							onClick={
-								onClose
-							}
-							type="button"
+				</div>
+
+				{/* Action Buttons */}
+				<div className="flex space-x-3">
+					<button
+						onClick={onClose}
+						className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+						type="button"
+					>
+						Cancel
+					</button>
+					<button
+						onClick={onLogout}
+						className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center space-x-2"
+						type="button"
+					>
+						<svg
+							className="w-4 h-4"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+							viewBox="0 0 24 24"
 						>
-							Cancel
-						</button>
-						<button
-							className="flex-1 py-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-semibold shadow border border-red-500"
-							onClick={
-								onLogout
-							}
-							type="button"
-						>
-							<span className="inline-flex items-center gap-1 justify-center">
-								<svg
-									className="w-4 h-4 mr-1 -ml-1"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"
-									/>
-								</svg>
-								Logout
-							</span>
-						</button>
-					</div>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1"
+							/>
+						</svg>
+						<span>Logout</span>
+					</button>
 				</div>
 			</div>
 		</div>

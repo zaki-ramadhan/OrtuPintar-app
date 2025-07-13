@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 import LogoutModal from "@/components/client/homePage/LogoutModal";
 import AddChildModal from "@/components/client/homePage/AddChildModal";

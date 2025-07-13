@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+
 export default function Header({ setShowLogoutModal }) {
     return (
         <div className="bg-white shadow-sm border-b  border-gray-300">
