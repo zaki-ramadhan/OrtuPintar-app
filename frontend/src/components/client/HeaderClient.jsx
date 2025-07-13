@@ -55,7 +55,7 @@ export default function HeaderClient() {
 
             <Link
                 to="/home"
-                className="text-gray-600 hover:text-gray-900 p-2 md:px-3 md:py-2 rounded-lg flex items-center space-x-1"
+                className="text-gray-500 hover:text-gray-900 p-2 md:px-3 md:py-2 rounded-lg flex items-center space-x-1"
                 title="Back to Home"
               >
                 {/* Home icon only on mobile */}
@@ -69,7 +69,7 @@ export default function HeaderClient() {
                 <svg className="w-4 h-4 md:w-5 md:h-5 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                <span className="hidden lg:block mr-4">Back to Home</span>
+                <span className="hidden lg:block mr-4 text-sm font-medium">Back to Home</span>
               </Link>
 
             {/* User Menu */}

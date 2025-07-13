@@ -12,6 +12,7 @@ import NotFoundPage from "@/pages/Client/NotFoundPage";
 import ProtectedAdminRoute from "@/components/admin/auth/ProtectedAdminRoute";
 import ErrorBoundary from "@/components/client/ErrorBoundary";
 import MilestonesPage from "./pages/Client/MilestonesPage";
+import LogActivityPage from "./pages/Client/LogActivityPage";
 
 const router = createBrowserRouter([
   {
@@ -29,10 +30,13 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <RegisterPage />,
-  },
-  {
+  }, {
     path: "/milestones",
     element: <MilestonesPage />,
+  },
+  {
+    path: "/log-activity",
+    element: <LogActivityPage />,
   },
   {
     path: "/my-account",

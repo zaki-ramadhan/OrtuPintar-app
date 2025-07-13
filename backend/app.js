@@ -11,6 +11,7 @@ import recommendActivitiesRoutes from "./routes/recommendActivitiesRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import debugRoutes from "./routes/debugRoutes.js";
 import milestoneRoutes from "./routes/milestoneRoutes.js";
+import logActivityRoutes from "./routes/logActivityRoutes.js";
 
 const app = express();
 
@@ -30,5 +31,6 @@ app.use("/api/activities", recommendActivitiesRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/debug", debugRoutes);
 app.use("/api/milestones", milestoneRoutes);
+app.use("/api/log-activities", logActivityRoutes);
 
 export default app;
