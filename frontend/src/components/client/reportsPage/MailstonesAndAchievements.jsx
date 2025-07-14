@@ -218,53 +218,51 @@ export default function MilestonesAndAchievements({ currentChild }) {
             <span>Recently Completed</span>
           </h4>
 
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
             {transformedCompletedMilestones.length > 0 ? (
-              transformedCompletedMilestones
-                .slice(0, 3)
-                .map((milestone, index) => {
-                  const displayTitle =
-                    milestone.activityTitle ||
-                    milestone.activity_title ||
-                    milestone.title ||
-                    "Unknown Activity";
+              transformedCompletedMilestones.map((milestone, index) => {
+                const displayTitle =
+                  milestone.activityTitle ||
+                  milestone.activity_title ||
+                  milestone.title ||
+                  "Unknown Activity";
 
-                  return (
-                    <div
-                      key={milestone.id || index}
-                      className="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg"
-                    >
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-green-900">
-                          {displayTitle}
-                        </p>
-                        <p className="text-sm text-green-700">
-                          Completed{" "}
-                          {formatDate(
-                            milestone.achievedAt ||
-                              milestone.achieved_at ||
-                              milestone.completed_at
-                          )}
-                        </p>
-                      </div>
+                return (
+                  <div
+                    key={milestone.id || index}
+                    className="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg"
+                  >
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
                     </div>
-                  );
-                })
+                    <div className="flex-1">
+                      <p className="font-medium text-green-900">
+                        {displayTitle}
+                      </p>
+                      <p className="text-sm text-green-700">
+                        Completed{" "}
+                        {formatDate(
+                          milestone.achievedAt ||
+                            milestone.achieved_at ||
+                            milestone.completed_at
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
             ) : (
               <div className="flex items-center space-x-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                 <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
@@ -314,37 +312,35 @@ export default function MilestonesAndAchievements({ currentChild }) {
             <span>In Progress</span>
           </h4>
 
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
             {transformedInProgressMilestones.length > 0 ? (
-              transformedInProgressMilestones
-                .slice(0, 3)
-                .map((milestone, index) => {
-                  const displayTitle =
-                    milestone.activityTitle ||
-                    milestone.activity_title ||
-                    milestone.title ||
-                    "Unknown Activity";
+              transformedInProgressMilestones.map((milestone, index) => {
+                const displayTitle =
+                  milestone.activityTitle ||
+                  milestone.activity_title ||
+                  milestone.title ||
+                  "Unknown Activity";
 
-                  return (
-                    <div
-                      key={milestone.id || index}
-                      className="p-3 bg-blue-50 border border-blue-200 rounded-lg"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="font-medium text-blue-900">
-                          {displayTitle}
-                        </p>
-                        <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
-                          In Progress
-                        </span>
-                      </div>
-                      <p className="text-xs text-blue-700">
-                        {milestone.description ||
-                          "Continue with this activity to achieve the milestone."}
+                return (
+                  <div
+                    key={milestone.id || index}
+                    className="p-3 bg-blue-50 border border-blue-200 rounded-lg"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-medium text-blue-900">
+                        {displayTitle}
                       </p>
+                      <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
+                        In Progress
+                      </span>
                     </div>
-                  );
-                })
+                    <p className="text-xs text-blue-700">
+                      {milestone.description ||
+                        "Continue with this activity to achieve the milestone."}
+                    </p>
+                  </div>
+                );
+              })
             ) : (
               <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
@@ -366,7 +362,7 @@ export default function MilestonesAndAchievements({ currentChild }) {
 
       {/* Milestone Summary */}
       <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-6">
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
               {stats.completed}
@@ -378,12 +374,6 @@ export default function MilestonesAndAchievements({ currentChild }) {
               {stats.inProgress}
             </div>
             <div className="text-sm text-gray-600">In Progress</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-600">
-              {stats.upcoming}
-            </div>
-            <div className="text-sm text-gray-600">Upcoming</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-purple-600">
