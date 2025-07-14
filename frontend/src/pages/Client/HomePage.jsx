@@ -15,6 +15,7 @@ import { Link, useNavigate } from "react-router";
 import axios from "axios";
 import toast from "react-hot-toast";
 import HeaderClient from "@/components/client/HeaderClient";
+import { triggerMilestoneRefresh } from "@/utils/milestoneUtils";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -22,7 +23,8 @@ export default function HomePage() {
   const [activeChild, setActiveChild] = useState(0);
   const [selectedTab, setSelectedTab] = useState("overview");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [notifications, setNotifications] = useState([]); const [activities, setActivities] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [children, setChildren] = useState([]);
   const [showAddChildModal, setShowAddChildModal] = useState(false);
   const [upcomingReminders, setUpcomingReminders] = useState([]);
@@ -64,8 +66,9 @@ export default function HomePage() {
         console.error("Error fetching children:", err);
         setChildren([]); // fallback biar gak undefined
       }
-    }; fetchChildren();
-  }, []);  // Effect untuk mengambil progress semua anak setelah data children tersedia
+    };
+    fetchChildren();
+  }, []); // Effect untuk mengambil progress semua anak setelah data children tersedia
   useEffect(() => {
     if (children.length > 0) {
       const fetchProgress = async () => {
@@ -86,20 +89,26 @@ export default function HomePage() {
               );
 
               const childReminders = remindersResponse.data.reminders || [];
-              const completedCount = childReminders.filter(rem => rem.completed).length;
-              const progressPercentage = childReminders.length > 0
-                ? Math.round((completedCount / childReminders.length) * 100)
-                : 0;
+              const completedCount = childReminders.filter(
+                (rem) => rem.completed
+              ).length;
+              const progressPercentage =
+                childReminders.length > 0
+                  ? Math.round((completedCount / childReminders.length) * 100)
+                  : 0;
 
               return {
                 childId: child.id,
-                progress: progressPercentage
+                progress: progressPercentage,
               };
             } catch (err) {
-              console.error(`Error fetching progress for child ${child.id}:`, err);
+              console.error(
+                `Error fetching progress for child ${child.id}:`,
+                err
+              );
               return {
                 childId: child.id,
-                progress: Number(child.progress) || 0
+                progress: Number(child.progress) || 0,
               };
             }
           });
@@ -107,12 +116,16 @@ export default function HomePage() {
           const progressResults = await Promise.all(progressPromises);
 
           // Update children state hanya sekali dengan semua progress baru
-          setChildren(prevChildren =>
-            prevChildren.map(child => {
-              const progressData = progressResults.find(p => p.childId === child.id);
+          setChildren((prevChildren) =>
+            prevChildren.map((child) => {
+              const progressData = progressResults.find(
+                (p) => p.childId === child.id
+              );
               return {
                 ...child,
-                progress: progressData ? progressData.progress : (Number(child.progress) || 0)
+                progress: progressData
+                  ? progressData.progress
+                  : Number(child.progress) || 0,
               };
             })
           );
@@ -223,9 +236,9 @@ export default function HomePage() {
         prev.map((notification) =>
           notification.id === notificationId
             ? {
-              ...notification,
-              read: true,
-            }
+                ...notification,
+                read: true,
+              }
             : notification
         )
       );
@@ -304,7 +317,7 @@ export default function HomePage() {
         }
       );
 
-      console.log("✅ Start activity response:", startResponse.data);      // Fetch updated reminders with explicit childId
+      console.log("✅ Start activity response:", startResponse.data); // Fetch updated reminders with explicit childId
       console.log("🔄 Fetching updated reminders...");
       await fetchUpcomingReminders(currentChild.id);
 
@@ -321,10 +334,14 @@ export default function HomePage() {
 
   const handleViewAllAchievements = () => {
     navigate("/log-activity");
-  }; const handleCompleteReminder = async (reminder) => {
+  };
+  const handleCompleteReminder = async (reminder) => {
+    console.log("🎯 handleCompleteReminder CALLED! Reminder:", reminder);
+    console.log("🎯 Current time:", new Date().toISOString());
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
+      console.log("📤 Sending complete activity request to backend...");
+      const response = await axios.put(
         `${API_URL}/activities/complete`,
         {
           childId: reminder.childId,
@@ -336,13 +353,22 @@ export default function HomePage() {
           },
         }
       );
+      console.log("✅ Activity completion response:", response.data);
 
       // Fetch updated data
       await fetchUpcomingReminders(reminder.childId);
       await fetchNotifications();
-      await fetchChildProgress();      // Trigger refresh for RecentActivities and WeeklySummary
+      await fetchChildProgress();
+
+      // Trigger refresh for RecentActivities and WeeklySummary
       setRefreshKey((prev) => prev + 1);
       setWeeklyRefreshKey((prev) => prev + 1);
+
+      // Trigger milestone refresh for Reports page
+      console.log("🔄 About to call triggerMilestoneRefresh()...");
+      triggerMilestoneRefresh();
+      console.log("🏆 Triggered milestone refresh after activity completion");
+      console.log("✅ handleCompleteReminder completed successfully!");
 
       // Don't reset hideCompletedReminders here to maintain user's choice
       // The newly completed activity will be handled by the filtering logic
@@ -377,11 +403,15 @@ export default function HomePage() {
       console.error("Cancel activity error:", err);
       toast.error("Failed to cancel activity");
     }
-  };  // Handler: Clear all completed reminders (client-side only)
+  }; // Handler: Clear all completed reminders (client-side only)
   const handleClearCompletedReminders = () => {
-    const completedCount = upcomingReminders.filter(r => r.completed).length;
+    const completedCount = upcomingReminders.filter((r) => r.completed).length;
     setHideCompletedReminders(true);
-    toast.success(`${completedCount} completed reminder${completedCount > 1 ? 's' : ''} cleared from view!`);
+    toast.success(
+      `${completedCount} completed reminder${
+        completedCount > 1 ? "s" : ""
+      } cleared from view!`
+    );
   };
 
   // Handler: Show all reminders again
@@ -411,8 +441,9 @@ export default function HomePage() {
     } else if (months === 0) {
       return `${years} year${years > 1 ? "s" : ""}`;
     } else {
-      return `${years} year${years > 1 ? "s" : ""}, ${months} month${months > 1 ? "s" : ""
-        }`;
+      return `${years} year${years > 1 ? "s" : ""}, ${months} month${
+        months > 1 ? "s" : ""
+      }`;
     }
   }
 
@@ -529,7 +560,7 @@ export default function HomePage() {
   // we directly use upcomingReminders as childRemindersToday
   // Apply client-side filtering to hide completed reminders if requested
   const childRemindersToday = hideCompletedReminders
-    ? upcomingReminders.filter(reminder => !reminder.completed)
+    ? upcomingReminders.filter((reminder) => !reminder.completed)
     : upcomingReminders;
 
   const completedCount = childRemindersToday.filter(
@@ -563,12 +594,11 @@ export default function HomePage() {
 
     // Fallback: return 0 jika tidak ada data
     return 0;
-  });  // Ambil semua milestone activity yang sesuai dengan usia anak
+  }); // Ambil semua milestone activity yang sesuai dengan usia anak
   const milestoneActivities = activities.filter((a) => {
     if (!a.isMilestone || !childAgeInYears) return false;
     return (
-      childAgeInYears >= a.age_group_min &&
-      childAgeInYears <= a.age_group_max
+      childAgeInYears >= a.age_group_min && childAgeInYears <= a.age_group_max
     );
   });
 
@@ -597,42 +627,55 @@ export default function HomePage() {
   // Cari milestone yang sudah pernah dikerjakan (in_progress atau completed)
   const workedMilestoneIds = new Set(
     allChildReminders
-      .filter(reminder =>
-        milestoneActivities.some(milestone => milestone.id === reminder.activityId) &&
-        (reminder.status === 'in_progress' || reminder.status === 'completed')
+      .filter(
+        (reminder) =>
+          milestoneActivities.some(
+            (milestone) => milestone.id === reminder.activityId
+          ) &&
+          (reminder.status === "in_progress" || reminder.status === "completed")
       )
-      .map(reminder => reminder.activityId)
+      .map((reminder) => reminder.activityId)
   );
 
   // Tambahkan milestone yang sudah ada di upcoming reminders hari ini ke daftar yang sudah dikerjakan
   const todayMilestoneIds = new Set(
     childRemindersToday
-      .filter(reminder =>
-        milestoneActivities.some(milestone => milestone.id === reminder.activityId)
+      .filter((reminder) =>
+        milestoneActivities.some(
+          (milestone) => milestone.id === reminder.activityId
+        )
       )
-      .map(reminder => reminder.activityId)
+      .map((reminder) => reminder.activityId)
   );
 
   // Gabungkan milestone yang sudah dikerjakan dan yang ada di upcoming reminders hari ini
-  const unavailableMilestoneIds = new Set([...workedMilestoneIds, ...todayMilestoneIds]);
+  const unavailableMilestoneIds = new Set([
+    ...workedMilestoneIds,
+    ...todayMilestoneIds,
+  ]);
 
   // Next milestones: milestone yang belum pernah dikerjakan dan tidak ada di upcoming reminders hari ini
   const nextMilestones = milestoneActivities.filter(
-    milestone => !unavailableMilestoneIds.has(milestone.id)
+    (milestone) => !unavailableMilestoneIds.has(milestone.id)
   );
 
   // Recent achievements: milestone yang sudah completed, urut terbaru
   const recentAchievements = allChildReminders
-    .filter(reminder =>
-      reminder.status === 'completed' &&
-      milestoneActivities.some(milestone => milestone.id === reminder.activityId)
+    .filter(
+      (reminder) =>
+        reminder.status === "completed" &&
+        milestoneActivities.some(
+          (milestone) => milestone.id === reminder.activityId
+        )
     )
     .map((reminder) => {
-      const milestone = milestoneActivities.find(m => m.id === reminder.activityId);
+      const milestone = milestoneActivities.find(
+        (m) => m.id === reminder.activityId
+      );
       return {
         name: milestone?.name || milestone?.title || "-",
         date: reminder.completed_at || reminder.updated_at,
-        milestone: milestone
+        milestone: milestone,
       };
     })
     .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -664,8 +707,8 @@ export default function HomePage() {
             {currentDate.getHours() < 12
               ? "Morning"
               : currentDate.getHours() < 17
-                ? "Afternoon"
-                : "Evening"}
+              ? "Afternoon"
+              : "Evening"}
             ,{user?.name ? ` ${user.name}` : "-"}
             👋
           </h2>
@@ -687,7 +730,9 @@ export default function HomePage() {
         {/* Main Content Grid - Responsive Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Main Dashboard */}
-          <div className="xl:col-span-2 space-y-4 sm:space-y-6">            {/* Current Child Overview */}
+          <div className="xl:col-span-2 space-y-4 sm:space-y-6">
+            {" "}
+            {/* Current Child Overview */}
             {currentChild && (
               <CurrentChildOverview
                 currentChild={{
@@ -697,21 +742,19 @@ export default function HomePage() {
                     ? calculateAge(currentChild.birthDate)
                     : "-",
                   progress: progressToday,
-                  nextMilestone: nextMilestones.length > 0
-                    ? nextMilestones[0]
-                    : null,
-                  recentAchievement: recentAchievements.length > 0
-                    ? recentAchievements[0]
-                    : null,
+                  nextMilestone:
+                    nextMilestones.length > 0 ? nextMilestones[0] : null,
+                  recentAchievement:
+                    recentAchievements.length > 0
+                      ? recentAchievements[0]
+                      : null,
                 }}
                 onStartMilestone={handleStartActivity}
                 onViewAllAchievements={handleViewAllAchievements}
               />
             )}
-
             {/* Quick Actions Grid */}
             <QuickActions />
-
             {/* Recommended Activities */}
             <div data-component="recommended-activities">
               <RecommendedActivities
@@ -722,14 +765,14 @@ export default function HomePage() {
                 }}
                 onStartActivity={handleStartActivity}
               />
-            </div>            {filteredActivities.length === 0 && childAgeInYears === 0 && (
+            </div>{" "}
+            {filteredActivities.length === 0 && childAgeInYears === 0 && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4 mt-2 text-center">
                 Currently there are no activity suggestions for children under 1
                 year old. Please consult with experts or check baby development
                 milestones.
               </div>
             )}
-
             {/* Recent Activities */}
             <RecentAcitivities key={refreshKey} />
           </div>
@@ -742,7 +785,8 @@ export default function HomePage() {
               onMarkAsRead={handleMarkAsRead}
               onMarkAllAsRead={handleMarkAllAsRead}
               onClearAll={handleClearNotifications}
-            />            {/* Upcoming Reminders */}
+            />{" "}
+            {/* Upcoming Reminders */}
             <UpcomingReminders
               reminders={childRemindersToday}
               onComplete={handleCompleteReminder}
@@ -752,10 +796,8 @@ export default function HomePage() {
               allReminders={upcomingReminders}
               onShowAll={handleShowAllReminders}
             />
-
             {/* Expert Support */}
             <ExpertSupport />
-
             {/* Weekly Summary */}
             <WeeklySummary
               key={weeklyRefreshKey}
@@ -785,7 +827,8 @@ export default function HomePage() {
                 Start Activities
               </button>
             </div>
-          </div>          {/* View Reports Card */}
+          </div>{" "}
+          {/* View Reports Card */}
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-purple-200">
             <div className="text-center">
               <div className="text-4xl sm:text-5xl mb-4">📊</div>

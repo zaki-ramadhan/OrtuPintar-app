@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import axios from "axios";
 import ActivityDetailModal from "@/components/client/modals/ActivityDetailModal";
 import HeaderClient from "@/components/client/HeaderClient";
+import { triggerMilestoneRefresh } from "@/utils/milestoneUtils";
 import {
   PageHeader,
   ChildSelector,
@@ -198,6 +199,20 @@ export default function ReportsPage() {
     console.log("✅ Auth data found, setting user and fetching children");
     setUser(userData);
     fetchChildren(token);
+
+    // Listen for milestone refresh events
+    const handleMilestoneRefresh = () => {
+      console.log("📢 Reports page received milestone refresh event");
+      if (token) {
+        fetchChildren(token);
+      }
+    };
+
+    window.addEventListener("milestones_refresh", handleMilestoneRefresh);
+
+    return () => {
+      window.removeEventListener("milestones_refresh", handleMilestoneRefresh);
+    };
   }, []);
 
   // Function to fetch activities data for all children
@@ -635,12 +650,14 @@ export default function ReportsPage() {
               )}
 
               {/* Date Range & Report Type */}
-              <DateRangeAndReportType
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-                reportType={reportType}
-                setReportType={setReportType}
-              />
+              <div className="flex items-center space-x-4">
+                <DateRangeAndReportType
+                  dateRange={dateRange}
+                  setDateRange={setDateRange}
+                  reportType={reportType}
+                  setReportType={setReportType}
+                />
+              </div>
             </div>
             {/* Current Period Display */}
             <CurrentPeriodDisplay

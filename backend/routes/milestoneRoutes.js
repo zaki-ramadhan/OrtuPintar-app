@@ -1,9 +1,9 @@
 // routes/milestoneRoutes.js
 import express from "express";
 import {
-    getChildMilestones,
-    getAllMilestoneActivities,
-    getMilestoneStats,
+  getChildMilestones,
+  getAllMilestoneActivities,
+  // getMilestoneStats,
 } from "../controllers/milestoneController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -16,6 +16,6 @@ router.get("/child/:childId", verifyToken, getChildMilestones);
 router.get("/activities", verifyToken, getAllMilestoneActivities);
 
 // GET: Get milestone statistics for a child
-router.get("/stats/:childId", verifyToken, getMilestoneStats);
+// router.get("/stats/:childId", verifyToken, getMilestoneStats);
 
 export default router;
