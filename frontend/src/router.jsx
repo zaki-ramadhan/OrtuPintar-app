@@ -30,7 +30,8 @@ const router = createBrowserRouter([
   {
     path: "/register",
     element: <RegisterPage />,
-  }, {
+  },
+  {
     path: "/milestones",
     element: <MilestonesPage />,
   },
@@ -67,7 +68,55 @@ const router = createBrowserRouter([
 export default function AppRouter() {
   return (
     <ErrorBoundary>
-      <Toaster position="top-right" />
+      <Toaster
+        position="top-right"
+        containerClassName="toast-container"
+        containerStyle={{
+          top: 20,
+          right: 20,
+          zIndex: 999999,
+          position: "fixed",
+        }}
+        toastOptions={{
+          duration: 4000,
+          className: "toast-notification",
+          style: {
+            background: "#fff",
+            color: "#333",
+            fontSize: "14px",
+            fontWeight: "500",
+            padding: "12px 16px",
+            borderRadius: "8px",
+            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.25)",
+            zIndex: 999999,
+            position: "relative",
+            maxWidth: "350px",
+            pointerEvents: "auto",
+          },
+          success: {
+            style: {
+              border: "2px solid #10B981",
+              backgroundColor: "#F0FDF4",
+              color: "#065F46",
+            },
+            iconTheme: {
+              primary: "#10B981",
+              secondary: "#F0FDF4",
+            },
+          },
+          error: {
+            style: {
+              border: "2px solid #EF4444",
+              backgroundColor: "#FEF2F2",
+              color: "#991B1B",
+            },
+            iconTheme: {
+              primary: "#EF4444",
+              secondary: "#FEF2F2",
+            },
+          },
+        }}
+      />
       <RouterProvider router={router} />
     </ErrorBoundary>
   );

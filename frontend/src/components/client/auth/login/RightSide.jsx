@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -12,32 +12,132 @@ export default function RightSide() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Test toast on component mount for debugging
+  useEffect(() => {
+    console.log("🎯 RightSide component mounted, testing toast...");
+    // Uncomment this line to test if toast is working
+    // toast.success("Toast system is working!");
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("🚀 Form submitted");
 
+    if (!email || !password) {
+      console.log("❌ Validation failed: Missing fields");
+      toast.error("Please fill in all fields", {
+        style: {
+          zIndex: 999999,
+          position: "fixed",
+        },
+      });
+      return;
+    }
+
+    if (!email.includes("@")) {
+      console.log("❌ Validation failed: Invalid email");
+      toast.error("Please enter a valid email address", {
+        style: {
+          zIndex: 999999,
+          position: "fixed",
+        },
+      });
+      return;
+    }
+
+    console.log("✅ Validation passed, attempting login...");
     setLoading(true);
+
     try {
+      console.log("🔐 Attempting user login with:", { email });
+
       const response = await axios.post(`${API_URL}/auth/login`, {
         email,
         password,
       });
 
-      const { user, token } = response.data; // << Ambil token dari response
-      console.log("✅ Login Token:", token); // Debug biar kelihatan di console
+      const { user, token, message } = response.data;
+      console.log("🔍 Login response:", {
+        status: response.status,
+        data: response.data,
+      });
+
+      console.log("✅ Login successful");
 
       // Simpan user & token
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", token); // << Tambahkan ini!      toast.success("Login successful! Please wait...");
+      localStorage.setItem("token", token);
+
+      console.log("✅ Data saved to localStorage");
+      console.log("✅ Login Token:", token);
+
+      // Show success toast immediately with high z-index
+      toast.success(message || "Login successful! Welcome back!", {
+        style: {
+          zIndex: 999999,
+          position: "fixed",
+          background: "#F0FDF4",
+          border: "2px solid #10B981",
+          color: "#065F46",
+        },
+      });
+
+      // Navigate after a short delay
       setTimeout(() => {
+        console.log("🔄 Navigating to home...");
         navigate("/home");
-      }, 1800);
+      }, 1500);
     } catch (error) {
-      console.error("Login failed:", error);
-      toast.error(
-        error.response?.data?.message || "Login failed. Please try again."
-      );
+      console.error("❌ Login error:", error);
+
+      if (error.response) {
+        // Server responded with error status
+        const errorMessage =
+          error.response.data?.message || "Login failed. Please try again.";
+        console.log("❌ Login failed:", errorMessage);
+        toast.error(errorMessage, {
+          style: {
+            zIndex: 999999,
+            position: "fixed",
+            background: "#FEF2F2",
+            border: "2px solid #EF4444",
+            color: "#991B1B",
+          },
+        });
+      } else if (error.request) {
+        // Network error
+        console.error("❌ Network error:", error.request);
+        toast.error(
+          "Network error. Please check your connection and try again.",
+          {
+            style: {
+              zIndex: 999999,
+              position: "fixed",
+              background: "#FEF2F2",
+              border: "2px solid #EF4444",
+              color: "#991B1B",
+            },
+          }
+        );
+      } else {
+        // Other error
+        console.error("❌ Unexpected error:", error.message);
+        toast.error("Something went wrong. Please try again.", {
+          style: {
+            zIndex: 999999,
+            position: "fixed",
+            background: "#FEF2F2",
+            border: "2px solid #EF4444",
+            color: "#991B1B",
+          },
+        });
+      }
     } finally {
-      setTimeout(() => setLoading(false), 2000);
+      // Reset loading state after delay
+      setTimeout(() => {
+        console.log("🔄 Resetting loading state");
+        setLoading(false);
+      }, 1800);
     }
   };
 
@@ -71,6 +171,20 @@ export default function RightSide() {
                 Sign up
               </Link>
             </p>
+            {/* Debug toast button - remove this in production */}
+            {/* 
+            <button 
+              type="button" 
+              onClick={() => {
+                console.log("🧪 Testing toast...");
+                toast.success("Test toast success!");
+                toast.error("Test toast error!");
+              }}
+              className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+            >
+              Test Toast
+            </button>
+            */}
           </div>
 
           {/* Login Form */}
