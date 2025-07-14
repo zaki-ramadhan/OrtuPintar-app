@@ -720,7 +720,10 @@ export default function ReportsPage() {
               />
 
               {/* Export & Actions */}
-              <ExportAndActions mockReportData={dynamicReportData} />
+              <ExportAndActions
+                mockReportData={dynamicReportData}
+                currentChild={currentChild}
+              />
             </>
           )}
         </div>{" "}
