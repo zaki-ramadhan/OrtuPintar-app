@@ -576,12 +576,11 @@ export default function ReportsPage() {
     categories: mockReportData.categories, // Keep mock for now
     recentActivities:
       activities.length > 0
-        ? activities
-            .filter((activity) =>
-              currentChild ? activity.child_id === currentChild.id : true
-            )
-            .slice(0, 5)
-        : mockReportData.recentActivities, // Filter activities for current child
+        ? activities.filter((activity) =>
+            currentChild ? activity.child_id === currentChild.id : true
+          )
+        : // Removed .slice(0, 5) - let RecentActivities component handle pagination
+          mockReportData.recentActivities, // Filter activities for current child
   };
   const getProgressPercentage = (completed, total) => {
     return Math.round((completed / total) * 100);
