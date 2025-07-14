@@ -6,6 +6,8 @@ export const getChildMilestones = async (req, res) => {
   const { childId } = req.params;
   const userId = req.user.id;
 
+  console.log(`🏆 Getting milestones for child ID: ${childId}`);
+
   if (!childId) {
     return res.status(400).json({ message: "childId is required" });
   }
@@ -45,7 +47,18 @@ export const getChildMilestones = async (req, res) => {
       [childId]
     );
 
+    // Get child's age for filtering age-appropriate milestones
+    const [childInfo] = await db.query(
+      `SELECT name, birth_date, TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) AS age_years 
+       FROM children WHERE id = ?`,
+      [childId]
+    );
+
+    const childAge = childInfo.length > 0 ? childInfo[0].age_years : 3; // Default to 3 if age not found
+    console.log(`👶 Child is ${childAge} years old`);
+
     // Get child's activities that could be milestones (marked with isMilestone = 1)
+    // Filter by age group to show only relevant milestones
     const [potentialMilestones] = await db.query(
       `SELECT 
                 a.id,
@@ -66,21 +79,65 @@ export const getChildMilestones = async (req, res) => {
       [childId]
     );
 
+    // Filter potential milestones by age appropriateness
+    const ageAppropriateActivities = potentialMilestones.filter((activity) => {
+      const ageGroup = activity.age_group || "";
+
+      // Extract age ranges from age_group string (e.g., "2-3 years", "3-5 years")
+      const ageMatch = ageGroup.match(/(\d+)-(\d+)/);
+      if (ageMatch) {
+        const minAge = parseInt(ageMatch[1]);
+        const maxAge = parseInt(ageMatch[2]);
+
+        // Include if child's age is within range or close to it (±1 year flexibility)
+        return childAge >= minAge - 1 && childAge <= maxAge + 1;
+      }
+
+      // If no age range found, include it
+      return true;
+    });
+
+    console.log(
+      `🎯 Filtered ${ageAppropriateActivities.length} age-appropriate activities from ${potentialMilestones.length} total milestone activities`
+    );
+
     // Categorize activities
-    const completed = completedMilestones.map((milestone) => ({
-      id: milestone.id,
-      activity_title: milestone.activity_title,
-      category: milestone.category,
-      achieved_at: milestone.achieved_at,
-      icon: milestone.icon,
-      difficulty: milestone.difficulty,
-      notes: milestone.notes,
-    }));
+    const completed = [];
+
+    for (let i = 0; i < completedMilestones.length; i++) {
+      const milestone = completedMilestones[i];
+
+      const mappedMilestone = {
+        id: milestone.id,
+        // Ensure both field versions exist
+        activityTitle: milestone.activity_title || "Unknown Activity",
+        activity_title: milestone.activity_title || "Unknown Activity",
+        title: milestone.activity_title || "Unknown Activity",
+        category: milestone.category || "general",
+        // Ensure both date versions exist
+        achieved_at: milestone.achieved_at,
+        achievedAt: milestone.achieved_at,
+        // Other fields
+        icon: milestone.icon || "🎯",
+        difficulty: milestone.difficulty || "medium",
+        notes: milestone.notes || "",
+      };
+
+      completed.push(mappedMilestone);
+    }
+
+    // Debug processed completed milestones
+    if (completed.length > 0) {
+      console.log("🔍 First processed completed milestone:", completed[0]);
+      console.log("🔍 Mapped activityTitle:", completed[0].activityTitle);
+      console.log("🔍 Mapped achievedAt:", completed[0].achievedAt);
+      console.log("🔍 Keys in processed milestone:", Object.keys(completed[0]));
+    }
 
     const inProgress = [];
     const potential = [];
 
-    potentialMilestones.forEach((activity) => {
+    ageAppropriateActivities.forEach((activity) => {
       // Skip if already completed as milestone
       const isCompleted = completedMilestones.some(
         (cm) => cm.activity_id === activity.id
@@ -91,20 +148,24 @@ export const getChildMilestones = async (req, res) => {
         inProgress.push({
           id: activity.id,
           title: activity.title,
+          activityTitle: activity.title, // Use consistent field name
           category: activity.category,
           icon: activity.icon,
           difficulty: activity.difficulty,
           status: activity.status,
           description: activity.description,
+          age_group: activity.age_group,
         });
       } else if (!activity.status) {
         potential.push({
           id: activity.id,
           title: activity.title,
+          activityTitle: activity.title, // Use consistent field name
           category: activity.category,
           icon: activity.icon,
           difficulty: activity.difficulty,
           description: activity.description,
+          age_group: activity.age_group,
         });
       }
     });
@@ -114,17 +175,20 @@ export const getChildMilestones = async (req, res) => {
       completed: completed.length,
       inProgress: inProgress.length,
       upcoming: potential.length,
-      completionRate: potentialMilestones.length > 0 
-        ? Math.round((completed.length / potentialMilestones.length) * 100) 
-        : 0,
+      completionRate:
+        ageAppropriateActivities.length > 0
+          ? Math.round(
+              (completed.length / ageAppropriateActivities.length) * 100
+            )
+          : 0,
     };
 
     console.log(`✅ Milestones stats:`, stats);
-    console.log(`📊 Completed milestones:`, completed.length);
-    console.log(`⏳ In progress milestones:`, inProgress.length);
-    console.log(`📋 Potential milestones:`, potential.length);
+    console.log(
+      `📊 Completed milestones: ${completed.length}, In progress: ${inProgress.length}, Potential: ${potential.length}`
+    );
 
-    res.status(200).json({
+    const responseData = {
       message: "Milestones retrieved successfully",
       milestones: {
         completed,
@@ -132,7 +196,9 @@ export const getChildMilestones = async (req, res) => {
         potential,
         statistics: stats,
       },
-    });
+    };
+
+    res.status(200).json(responseData);
   } catch (error) {
     console.error("Get child milestones error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -177,13 +243,15 @@ export const createMilestone = async (req, res) => {
   const userId = req.user.id;
 
   if (!childId || !activityId) {
-    return res.status(400).json({ 
-      message: "childId and activityId are required" 
+    return res.status(400).json({
+      message: "childId and activityId are required",
     });
   }
 
   try {
-    console.log(`🏆 Creating milestone for child ${childId}, activity ${activityId}`);
+    console.log(
+      `🏆 Creating milestone for child ${childId}, activity ${activityId}`
+    );
 
     // Verify child belongs to user
     const [childCheck] = await db.query(
@@ -202,8 +270,8 @@ export const createMilestone = async (req, res) => {
     );
 
     if (activityCheck.length === 0) {
-      return res.status(404).json({ 
-        message: "Activity not found or not marked as milestone" 
+      return res.status(404).json({
+        message: "Activity not found or not marked as milestone",
       });
     }
 
@@ -215,8 +283,8 @@ export const createMilestone = async (req, res) => {
     );
 
     if (existingMilestone.length > 0) {
-      return res.status(400).json({ 
-        message: "Milestone already exists for this activity" 
+      return res.status(400).json({
+        message: "Milestone already exists for this activity",
       });
     }
 
@@ -266,10 +334,10 @@ export const updateMilestone = async (req, res) => {
     }
 
     // Update milestone
-    await db.query(
-      `UPDATE child_milestones SET notes = ? WHERE id = ?`,
-      [notes || null, milestoneId]
-    );
+    await db.query(`UPDATE child_milestones SET notes = ? WHERE id = ?`, [
+      notes || null,
+      milestoneId,
+    ]);
 
     console.log(`✅ Milestone ${milestoneId} updated`);
 
@@ -317,6 +385,72 @@ export const deleteMilestone = async (req, res) => {
     });
   } catch (error) {
     console.error("Delete milestone error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// ✅ GET: Get milestone statistics for a child
+export const getMilestoneStats = async (req, res) => {
+  const { childId } = req.params;
+  const userId = req.user.id;
+
+  if (!childId) {
+    return res.status(400).json({ message: "childId is required" });
+  }
+
+  try {
+    console.log(`📊 Getting milestone stats for child ID: ${childId}`); // Force reload
+
+    // Verify that the child belongs to the authenticated user
+    const [childCheck] = await db.query(
+      `SELECT id FROM children WHERE id = ? AND user_id = ?`,
+      [childId, userId]
+    );
+
+    if (childCheck.length === 0) {
+      return res.status(404).json({ message: "Child not found" });
+    }
+
+    // Get total completed milestones
+    const [completedCount] = await db.query(
+      `SELECT COUNT(*) as count FROM child_milestones WHERE child_id = ?`,
+      [childId]
+    );
+
+    // Get milestones per category
+    const [categoryStats] = await db.query(
+      `SELECT 
+        a.category,
+        COUNT(*) as count
+      FROM child_milestones cm
+      JOIN activities a ON cm.activity_id = a.id
+      WHERE cm.child_id = ?
+      GROUP BY a.category`,
+      [childId]
+    );
+
+    // Get recent milestones (last 5)
+    const [recentMilestones] = await db.query(
+      `SELECT 
+        cm.achieved_at,
+        a.title,
+        a.category,
+        a.icon
+      FROM child_milestones cm
+      JOIN activities a ON cm.activity_id = a.id
+      WHERE cm.child_id = ?
+      ORDER BY cm.achieved_at DESC
+      LIMIT 5`,
+      [childId]
+    );
+
+    res.status(200).json({
+      totalCompleted: completedCount[0]?.count || 0,
+      categoryBreakdown: categoryStats,
+      recentMilestones: recentMilestones,
+    });
+  } catch (error) {
+    console.error("Get milestone stats error:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
