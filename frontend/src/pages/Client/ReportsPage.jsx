@@ -21,7 +21,9 @@ export default function ReportsPage() {
   const navigate = useNavigate();
   const [_user, setUser] = useState(null);
   const [children, setChildren] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [activeChild, setActiveChild] = useState(0);
   const [dateRange, setDateRange] = useState("week"); // week, month, quarter, year
   const [reportType, setReportType] = useState("overview"); // overview, activities, milestones
@@ -198,6 +200,51 @@ export default function ReportsPage() {
     fetchChildren(token);
   }, []);
 
+  // Function to fetch activities data for all children
+  const fetchActivities = async (token) => {
+    try {
+      console.log("🎯 Fetching activities data...");
+      setActivitiesLoading(true);
+
+      const response = await axios.get(`${API_URL}/log-activities`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("✅ Activities data fetched:", response.data);
+
+      if (response.data.activities && Array.isArray(response.data.activities)) {
+        setActivities(response.data.activities);
+        console.log("✅ Activities state updated:", response.data.activities);
+        console.log(`📊 Total activities: ${response.data.activities.length}`);
+
+        // Log activity status breakdown
+        const completed = response.data.activities.filter(
+          (a) => a.status === "completed"
+        ).length;
+        const cancelled = response.data.activities.filter(
+          (a) => a.status === "cancelled"
+        ).length;
+        const inProgress = response.data.activities.filter(
+          (a) => a.status === "in_progress"
+        ).length;
+
+        console.log(
+          `📈 Activity breakdown - Completed: ${completed}, Cancelled: ${cancelled}, In Progress: ${inProgress}`
+        );
+      } else {
+        console.log("⚠️ No activities in response or invalid format");
+        setActivities([]);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching activities:", error);
+      setActivities([]);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  };
+
   // Function to fetch children data
   const fetchChildren = async (token) => {
     try {
@@ -225,21 +272,36 @@ export default function ReportsPage() {
         const transformedChildren = childrenData.map((child, index) => {
           console.log(`📝 Processing child ${index + 1}:`, child);
 
-          return {
+          // Log all possible milestone fields
+          console.log(`🎯 Milestone fields for ${child.name}:`, {
+            milestones: child.milestones,
+            milestones_completed: child.milestones_completed,
+            completedMilestones: child.completedMilestones,
+          });
+
+          const transformedChild = {
             id: child.id,
             name: child.name,
             age: calculateAge(child.birthDate || child.birth_date), // Handle both formats
             avatar:
               child.gender === "P" || child.gender === "female" ? "👧" : "👦", // Handle both P/L and female/male
             totalActivities: 0, // Will be updated when we fetch activities
-            completedMilestones:
-              child.milestones || child.milestones_completed || 0, // Handle both formats
+            completedMilestones: child.milestones || 0, // Use the correct 'milestones' field from backend
             avgScore: 0, // Will be calculated from activities
           };
+
+          console.log(`✅ Transformed child ${child.name}:`, transformedChild);
+          return transformedChild;
         });
 
         setChildren(transformedChildren);
         console.log("✅ Children state updated:", transformedChildren);
+
+        // Fetch activities after children are loaded
+        const token = localStorage.getItem("token");
+        if (token) {
+          fetchActivities(token);
+        }
       } else {
         console.log("⚠️ No children found in response");
         console.log("📝 Full response:", response.data);
@@ -289,6 +351,129 @@ export default function ReportsPage() {
   };
 
   const currentChild = children[activeChild] || children[0];
+
+  // Calculate real stats based on selected child and their activities
+  const calculateRealStats = (selectedChild = null) => {
+    console.log("🧮 Calculating real stats for selected child...");
+    console.log("� Selected child:", selectedChild);
+    console.log("🎯 All activities data:", activities);
+
+    if (!selectedChild) {
+      console.log("⚠️ No child selected");
+      return {
+        totalActivities: 0,
+        completedMilestones: 0,
+        completionRate: 0,
+        totalTimeSpent: 0,
+        activeStreak: 0,
+        lastActivity: "No activity yet",
+      };
+    }
+
+    // Filter activities for the selected child only
+    const childActivities = activities.filter(
+      (activity) => activity.child_id === selectedChild.id
+    );
+    console.log(`🔍 Activities for ${selectedChild.name}:`, childActivities);
+
+    // Calculate stats from this child's activities only
+    const totalActivities = childActivities.length || 0;
+    const completedActivities =
+      childActivities.filter((activity) => activity.status === "completed")
+        .length || 0;
+
+    // Get milestones for this specific child
+    const completedMilestones = selectedChild.completedMilestones || 0;
+    console.log(
+      `📈 Child ${selectedChild.name} milestones:`,
+      completedMilestones
+    );
+
+    // Calculate completion rate based on this child's activities
+    const completionRate =
+      totalActivities > 0
+        ? Math.round((completedActivities / totalActivities) * 100)
+        : 0;
+
+    // Calculate total time spent for this child's completed activities
+    let totalTimeSpent = 0;
+    if (childActivities.length > 0) {
+      // Sum up actual duration from this child's completed activities
+      const totalMinutes = childActivities
+        .filter((a) => a.status === "completed" && a.duration)
+        .reduce((sum, activity) => sum + (activity.duration || 30), 0);
+      totalTimeSpent = Math.round((totalMinutes / 60) * 10) / 10; // Round to 1 decimal place
+    }
+
+    // Calculate active streak based on this child's activity pattern
+    let activeStreak = 0;
+    if (childActivities.length > 0 && completedActivities > 0) {
+      // Simple calculation: every 2 completed activities = 1 day streak (max 14 days)
+      activeStreak = Math.min(
+        14,
+        Math.max(1, Math.floor(completedActivities / 2))
+      );
+    }
+
+    // Get last activity time for this child
+    let lastActivity = "No activity yet";
+    if (childActivities.length > 0) {
+      // Sort this child's activities by updated_at and get the most recent
+      const sortedActivities = [...childActivities].sort(
+        (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
+      );
+      const latestActivity = sortedActivities[0];
+      if (latestActivity && latestActivity.updated_at) {
+        const lastDate = new Date(latestActivity.updated_at);
+        const now = new Date();
+        const hoursDiff = Math.floor((now - lastDate) / (1000 * 60 * 60));
+
+        if (hoursDiff < 1) {
+          lastActivity = "Just now";
+        } else if (hoursDiff < 24) {
+          lastActivity = `${hoursDiff}h ago`;
+        } else {
+          const daysDiff = Math.floor(hoursDiff / 24);
+          lastActivity = `${daysDiff}d ago`;
+        }
+      }
+    }
+
+    const calculatedStats = {
+      totalActivities,
+      completedMilestones,
+      completionRate,
+      totalTimeSpent,
+      activeStreak,
+      lastActivity,
+    };
+
+    console.log(
+      `📊 Calculated stats for ${selectedChild.name}:`,
+      calculatedStats
+    );
+    console.log(
+      `📈 Child activities breakdown - Total: ${totalActivities}, Completed: ${completedActivities}, Milestones: ${completedMilestones}`
+    );
+    return calculatedStats;
+  };
+
+  const realStats = calculateRealStats(currentChild);
+
+  // Combine real stats with mock structure for other data
+  const dynamicReportData = {
+    overview: realStats,
+    weeklyProgress: mockReportData.weeklyProgress, // Keep mock for now
+    categories: mockReportData.categories, // Keep mock for now
+    recentActivities:
+      activities.length > 0
+        ? activities
+            .filter((activity) =>
+              currentChild ? activity.child_id === currentChild.id : true
+            )
+            .slice(0, 5)
+        : mockReportData.recentActivities, // Filter activities for current child
+  };
   const getProgressPercentage = (completed, total) => {
     return Math.round((completed / total) * 100);
   };
@@ -399,11 +584,15 @@ export default function ReportsPage() {
           ) : (
             <>
               {/* Overview Stats */}
-              <OverviewStats mockReportData={mockReportData} />
+              <OverviewStats
+                reportData={dynamicReportData}
+                children={children}
+                currentChild={currentChild}
+              />
 
               {/* Main Content Grid */}
               <MainContentGrid
-                mockReportData={mockReportData}
+                mockReportData={dynamicReportData}
                 formatDateRange={formatDateRange}
                 getProgressPercentage={getProgressPercentage}
               />
@@ -413,12 +602,12 @@ export default function ReportsPage() {
 
               {/* Recent Activities */}
               <RecentActivities
-                activities={mockReportData.recentActivities}
+                activities={dynamicReportData.recentActivities}
                 openModal={openModal}
               />
 
               {/* Export & Actions */}
-              <ExportAndActions mockReportData={mockReportData} />
+              <ExportAndActions mockReportData={dynamicReportData} />
             </>
           )}
         </div>{" "}
