@@ -686,9 +686,11 @@ export default function ReportsPage() {
 
               {/* Main Content Grid */}
               <MainContentGrid
-                mockReportData={dynamicReportData}
+                reportData={dynamicReportData}
                 formatDateRange={formatDateRange}
                 getProgressPercentage={getProgressPercentage}
+                currentChild={currentChild}
+                activities={activities}
               />
 
               {/* Milestones & Achievements */}
