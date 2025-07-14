@@ -208,10 +208,20 @@ export default function ReportsPage() {
       }
     };
 
+    // Listen for activities refresh events
+    const handleActivitiesRefresh = () => {
+      console.log("📢 Reports page received activities refresh event");
+      if (token) {
+        fetchActivities(token);
+      }
+    };
+
     window.addEventListener("milestones_refresh", handleMilestoneRefresh);
+    window.addEventListener("activities_refresh", handleActivitiesRefresh);
 
     return () => {
       window.removeEventListener("milestones_refresh", handleMilestoneRefresh);
+      window.removeEventListener("activities_refresh", handleActivitiesRefresh);
     };
   }, []);
 
@@ -596,6 +606,15 @@ export default function ReportsPage() {
     setSelectedActivity(null);
   };
 
+  const handleNoteUpdated = () => {
+    console.log("📝 Note updated, refreshing data...");
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetchActivities(token);
+      fetchChildren(token);
+    }
+  };
+
   const formatDateRange = () => {
     const now = new Date();
     switch (dateRange) {
@@ -736,6 +755,7 @@ export default function ReportsPage() {
         isOpen={isModalOpen}
         onClose={closeModal}
         activity={selectedActivity}
+        onNoteUpdated={handleNoteUpdated}
       />
     </>
   );

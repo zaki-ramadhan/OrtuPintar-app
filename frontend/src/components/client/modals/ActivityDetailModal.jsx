@@ -1,9 +1,27 @@
 import { useState } from "react";
+import axios from "axios";
 
-export default function ActivityDetailModal({ isOpen, onClose, activity }) {
+export default function ActivityDetailModal({
+  isOpen,
+  onClose,
+  activity,
+  onNoteUpdated,
+}) {
   const [activeTab, setActiveTab] = useState("overview");
+  const [newNote, setNewNote] = useState("");
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const [noteSuccess, setNoteSuccess] = useState(false);
 
-  if (!isOpen || !activity) return null;
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  if (!isOpen || !activity) {
+    // Reset states when modal is closed
+    if (!isOpen && (newNote || noteSuccess)) {
+      setNewNote("");
+      setNoteSuccess(false);
+    }
+    return null;
+  }
 
   // Detect if this is milestone data or regular activity data
   const isMilestone = activity.milestoneData !== undefined;
@@ -140,67 +158,89 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }) {
     }
   };
 
-  // Mock data detail berdasarkan struktur database dengan support untuk milestone
+  // Helper function to calculate duration
+  const calculateDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) return "Not available";
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const diffInMinutes = Math.round((end - start) / (1000 * 60));
+    return `${diffInMinutes} minutes`;
+  };
+
+  // Real activity detail based on actual data from RecentActivities
   const activityDetail = {
+    // Basic IDs and data
     id: activity.id,
-    child_id: milestoneInfo.child_id || 1,
-    activity_id: milestoneInfo.activity_id || activity.id || 23,
+    child_id: activity.child_id || milestoneInfo.child_id || 1,
+    activity_id: activity.activity_id || activity.id,
     status: activity.status,
-    started_at: isMilestone
-      ? milestoneInfo.started_at || "2025-07-13 14:30:00"
-      : "2025-07-13 14:30:00",
+
+    // Timestamps - use real data from activity
+    started_at:
+      activity.started_at || (isMilestone ? milestoneInfo.started_at : null),
     completed_at:
-      activity.status === "completed"
-        ? isMilestone
-          ? milestoneInfo.achievedAt ||
-            milestoneInfo.achieved_at ||
-            milestoneInfo.completed_at ||
-            "2025-07-13 15:15:00"
-          : "2025-07-13 15:15:00"
-        : null,
-    cancelled_at: null,
-    progress_notes: isMilestone
-      ? activity.status === "completed"
-        ? `🏆 Milestone Achievement! ${activity.title} has been successfully completed. This represents a significant developmental milestone for ${activity.child}.`
-        : `📚 Milestone in Progress: Working towards achieving ${activity.title}. Continue with related activities to complete this milestone.`
-      : activity.status === "completed"
-      ? "Excellent performance! Child showed great interest and completed all tasks successfully."
-      : "Activity scheduled and ready to begin.",
-    created_at: milestoneInfo.created_at || "2025-07-13 09:00:00",
-    updated_at: milestoneInfo.updated_at || "2025-07-13 15:15:00",
-    // Data tambahan untuk UI
+      activity.completed_at ||
+      (isMilestone
+        ? milestoneInfo.completed_at || milestoneInfo.achieved_at
+        : null),
+    cancelled_at: activity.cancelled_at,
+    created_at:
+      activity.created_at ||
+      (isMilestone ? milestoneInfo.created_at : new Date().toISOString()),
+    updated_at:
+      activity.updated_at ||
+      (isMilestone ? milestoneInfo.updated_at : new Date().toISOString()),
+
+    // Progress notes - use real data
+    progress_notes:
+      activity.progress_notes || (isMilestone ? milestoneInfo.notes : null),
+
+    // Activity information
     title: activity.title,
     category: isMilestone ? "Milestone Achievement" : activity.category,
     child: activity.child,
     date: activity.date,
     time: activity.time,
     duration:
-      activity.status === "completed"
-        ? isMilestone
-          ? "Milestone achieved"
-          : "45 minutes"
+      activity.duration ||
+      (activity.started_at && activity.completed_at
+        ? calculateDuration(activity.started_at, activity.completed_at)
         : isMilestone
-        ? "In progress"
-        : "Not started",
-    difficulty_level: isMilestone ? "Milestone" : "Beginner",
-    learning_objectives: isMilestone
-      ? [
-          "Achievement of developmental milestone",
-          "Recognition of learning progress",
-          "Validation of skill development",
-        ]
-      : [
-          "Improve cognitive recognition skills",
-          "Enhance problem-solving abilities",
-          "Develop attention to detail",
-        ],
-    materials_needed: isMilestone
-      ? [
-          "Completed activities leading to this milestone",
-          "Progress tracking documentation",
-          "Achievement celebration",
-        ]
-      : ["Colored blocks or cards", "Activity worksheet", "Timer (optional)"],
+        ? "Milestone tracking"
+        : "Not started"),
+    difficulty_level:
+      activity.difficulty_level || (isMilestone ? "Milestone" : "Beginner"),
+
+    // Learning objectives - use real data or defaults
+    learning_objectives:
+      activity.learning_objectives ||
+      (isMilestone
+        ? [
+            "Achievement of developmental milestone",
+            "Recognition of learning progress",
+            "Validation of skill development",
+          ]
+        : [
+            "Engage in structured learning activity",
+            "Develop targeted skills based on activity type",
+            "Practice focused attention and concentration",
+          ]),
+
+    // Materials - use real data or defaults
+    materials_needed:
+      activity.materials_needed ||
+      (isMilestone
+        ? [
+            "Completed prerequisite activities",
+            "Progress tracking documentation",
+            "Achievement recognition materials",
+          ]
+        : [
+            "Activity-specific materials",
+            "Comfortable learning environment",
+            "Adult supervision if needed",
+          ]),
+
     // Milestone specific data
     milestoneDetails: isMilestone
       ? {
@@ -230,6 +270,93 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }) {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const handleSubmitNote = async () => {
+    if (!newNote.trim()) {
+      alert("Please enter a note before submitting.");
+      return;
+    }
+
+    try {
+      setIsSubmittingNote(true);
+      const token = localStorage.getItem("token");
+
+      console.log("🔍 Debug info for saving note:");
+      console.log("isMilestone:", isMilestone);
+      console.log("activity:", activity);
+      console.log("milestoneInfo:", milestoneInfo);
+      console.log("newNote:", newNote);
+
+      if (isMilestone) {
+        // Update milestone notes
+        const milestoneId = milestoneInfo.id || activity.id;
+        console.log("📝 Saving milestone note for ID:", milestoneId);
+
+        const response = await axios.put(
+          `${API_URL}/milestones/${milestoneId}`,
+          { notes: newNote },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log("✅ Milestone note response:", response.data);
+      } else {
+        // Update activity progress notes
+        const activityId = activity.id;
+        const endpoint = `${API_URL}/log-activities/${activityId}/notes`;
+        console.log("📝 Saving activity note for ID:", activityId);
+        console.log("📝 Using endpoint:", endpoint);
+        console.log("📝 Request payload:", { notes: newNote });
+
+        const response = await axios.put(
+          endpoint,
+          { notes: newNote },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log("✅ Activity note response:", response.data);
+      }
+
+      setNoteSuccess(true);
+      setNewNote("");
+
+      // Call callback to refresh data if provided
+      if (onNoteUpdated) {
+        onNoteUpdated();
+      }
+
+      // Trigger refresh for milestones and activities
+      if (isMilestone) {
+        // Trigger milestone refresh
+        window.dispatchEvent(new CustomEvent("milestones_refresh"));
+        localStorage.setItem("milestones_refresh", Date.now().toString());
+      } else {
+        // Trigger activities refresh (for reports page)
+        window.dispatchEvent(new CustomEvent("activities_refresh"));
+      }
+
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        setNoteSuccess(false);
+      }, 3000);
+
+      console.log(
+        `✅ ${isMilestone ? "Milestone" : "Activity"} note saved successfully`
+      );
+    } catch (error) {
+      console.error("Error saving note:", error);
+      alert(
+        `Failed to save note: ${error.response?.data?.message || error.message}`
+      );
+    } finally {
+      setIsSubmittingNote(false);
+    }
   };
 
   return (
@@ -357,6 +484,14 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }) {
                     </span>
                   </h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium text-gray-600">
+                        Record ID:
+                      </span>
+                      <span className="text-sm text-gray-900">
+                        #{activityDetail.id}
+                      </span>
+                    </div>
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-gray-600">
                         {isMilestone ? "Milestone" : "Activity"} ID:
@@ -561,17 +696,12 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }) {
                         : "Activity Created"}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      {isMilestone
-                        ? formatDateTime(
-                            milestoneInfo.created_at ||
-                              activityDetail.created_at
-                          )
-                        : formatDateTime(activityDetail.created_at)}
+                      {formatDateTime(activityDetail.created_at)}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       {isMilestone
                         ? `Milestone "${activityDetail.title}" was identified as a development goal for ${activityDetail.child}`
-                        : "Initial activity setup completed"}
+                        : `Activity "${activityDetail.title}" was scheduled for ${activityDetail.child}`}
                     </p>
                     {isMilestone && milestoneInfo.milestone_type && (
                       <div className="mt-2">
@@ -621,17 +751,12 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }) {
                           : "Activity Started"}
                       </h4>
                       <p className="text-sm text-gray-600">
-                        {isMilestone
-                          ? formatDateTime(
-                              milestoneInfo.started_at ||
-                                activityDetail.started_at
-                            )
-                          : formatDateTime(activityDetail.started_at)}
+                        {formatDateTime(activityDetail.started_at)}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         {isMilestone
                           ? `${activityDetail.child} began working on activities that lead to this milestone achievement`
-                          : "Child began the activity"}
+                          : `${activityDetail.child} started working on this activity`}
                       </p>
                       {isMilestone && milestoneInfo.requirements && (
                         <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
@@ -849,52 +974,133 @@ export default function ActivityDetailModal({ isOpen, onClose, activity }) {
                         isMilestone ? "text-yellow-800" : "text-amber-800"
                       } leading-relaxed`}
                     >
-                      {activityDetail.progress_notes}
+                      {isMilestone
+                        ? milestoneInfo.notes ||
+                          "No notes added yet for this milestone."
+                        : activityDetail.progress_notes ||
+                          "No notes added yet for this activity."}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Add Notes Section (untuk future feature) */}
+              {/* Add Notes Section */}
               <div
                 className={`border-2 border-dashed ${
                   isMilestone ? "border-yellow-200" : "border-gray-200"
-                } rounded-lg p-6 text-center`}
+                } rounded-lg p-6`}
               >
-                <svg
-                  className={`w-12 h-12 ${
-                    isMilestone ? "text-yellow-400" : "text-gray-400"
-                  } mx-auto mb-4`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                  />
-                </svg>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">
-                  {isMilestone
-                    ? "Add Achievement Notes"
-                    : "Add Additional Notes"}
-                </h4>
+                <div className="flex items-center space-x-3 mb-4">
+                  <svg
+                    className={`w-8 h-8 ${
+                      isMilestone ? "text-yellow-400" : "text-gray-400"
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  <h4 className="text-lg font-medium text-gray-900">
+                    {isMilestone
+                      ? "Add Achievement Notes"
+                      : "Add Additional Notes"}
+                  </h4>
+                </div>
+
                 <p className="text-gray-600 mb-4">
                   {isMilestone
                     ? "Record celebration moments, family reactions, or additional observations about this milestone achievement."
                     : "Record observations, feedback, or recommendations for this activity."}
                 </p>
-                <button
-                  className={`px-4 py-2 ${
-                    isMilestone
-                      ? "bg-yellow-600 hover:bg-yellow-700"
-                      : "bg-blue-600 hover:bg-blue-700"
-                  } text-white rounded-lg transition-colors text-sm font-medium`}
-                >
-                  Add Note
-                </button>
+
+                {/* Note Input */}
+                <div className="space-y-3">
+                  <textarea
+                    value={newNote}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value.length <= 500) {
+                        setNewNote(value);
+                      }
+                    }}
+                    placeholder={
+                      isMilestone
+                        ? "Share how this milestone was achieved, family celebrations, or future goals..."
+                        : "Add your observations about the child's performance, areas for improvement, or recommendations..."
+                    }
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={4}
+                    disabled={isSubmittingNote}
+                    maxLength={500}
+                  />
+
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-500">
+                      {newNote.length}/500 characters
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      {noteSuccess && (
+                        <div className="flex items-center space-x-1 text-green-600">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                          <span className="text-sm">Note saved!</span>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={handleSubmitNote}
+                        disabled={isSubmittingNote || !newNote.trim()}
+                        className={`px-4 py-2 ${
+                          isMilestone
+                            ? "bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-300"
+                            : "bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300"
+                        } text-white rounded-lg transition-colors text-sm font-medium disabled:cursor-not-allowed flex items-center space-x-2`}
+                      >
+                        {isSubmittingNote ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                              />
+                            </svg>
+                            <span>Add Note</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
