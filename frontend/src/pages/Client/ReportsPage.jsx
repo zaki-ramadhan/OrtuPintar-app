@@ -350,6 +350,104 @@ export default function ReportsPage() {
     }
   };
 
+  // Helper function to calculate real day streak based on consecutive days
+  const calculateRealDayStreak = (childActivities) => {
+    console.log("🔥 Calculating real day streak...");
+
+    if (!childActivities || childActivities.length === 0) {
+      console.log("⚠️ No activities for streak calculation");
+      return 0;
+    }
+
+    // Get only completed activities with valid completion dates
+    const completedActivities = childActivities.filter(
+      (activity) => activity.status === "completed" && activity.completed_at
+    );
+
+    if (completedActivities.length === 0) {
+      console.log("⚠️ No completed activities for streak calculation");
+      return 0;
+    }
+
+    // Group activities by date (YYYY-MM-DD format)
+    const activitiesByDate = {};
+    completedActivities.forEach((activity) => {
+      const completedDate = new Date(activity.completed_at);
+      const dateKey = completedDate.toISOString().split("T")[0]; // YYYY-MM-DD format
+
+      if (!activitiesByDate[dateKey]) {
+        activitiesByDate[dateKey] = [];
+      }
+      activitiesByDate[dateKey].push(activity);
+    });
+
+    console.log("📅 Activities grouped by date:", activitiesByDate);
+
+    // Get unique dates and sort them in descending order (newest first)
+    const uniqueDates = Object.keys(activitiesByDate).sort(
+      (a, b) => new Date(b) - new Date(a)
+    );
+    console.log("📊 Unique activity dates (sorted):", uniqueDates);
+
+    if (uniqueDates.length === 0) return 0;
+
+    let streak = 0;
+    const today = new Date();
+    const todayString = today.toISOString().split("T")[0];
+
+    console.log("🗓️ Today's date:", todayString);
+
+    // Start checking from today backwards
+    let checkDate = new Date(today);
+    let foundToday = false;
+
+    // Check if there's activity today
+    if (activitiesByDate[todayString]) {
+      foundToday = true;
+      streak = 1;
+      console.log("✅ Found activity today, streak starts at 1");
+    } else {
+      // Check if there's activity yesterday (grace period of 1 day)
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayString = yesterday.toISOString().split("T")[0];
+
+      if (activitiesByDate[yesterdayString]) {
+        foundToday = true;
+        streak = 1;
+        checkDate = yesterday;
+        console.log(
+          "✅ Found activity yesterday (grace period), streak starts at 1"
+        );
+      } else {
+        console.log("❌ No recent activity (today or yesterday), streak is 0");
+        return 0;
+      }
+    }
+
+    // Count consecutive days backwards
+    for (let i = 1; i < uniqueDates.length; i++) {
+      // Move to previous day
+      checkDate.setDate(checkDate.getDate() - 1);
+      const expectedDateString = checkDate.toISOString().split("T")[0];
+
+      console.log(`🔍 Checking for activity on: ${expectedDateString}`);
+
+      if (activitiesByDate[expectedDateString]) {
+        streak++;
+        console.log(
+          `✅ Found activity on ${expectedDateString}, streak now: ${streak}`
+        );
+      } else {
+        console.log(`❌ No activity on ${expectedDateString}, breaking streak`);
+        break;
+      }
+    }
+
+    console.log(`🔥 Final day streak: ${streak} days`);
+    return streak;
+  };
+
   const currentChild = children[activeChild] || children[0];
 
   // Calculate real stats based on selected child and their activities
@@ -405,14 +503,10 @@ export default function ReportsPage() {
       totalTimeSpent = Math.round((totalMinutes / 60) * 10) / 10; // Round to 1 decimal place
     }
 
-    // Calculate active streak based on this child's activity pattern
+    // Calculate active streak based on consecutive days with completed activities
     let activeStreak = 0;
     if (childActivities.length > 0 && completedActivities > 0) {
-      // Simple calculation: every 2 completed activities = 1 day streak (max 14 days)
-      activeStreak = Math.min(
-        14,
-        Math.max(1, Math.floor(completedActivities / 2))
-      );
+      activeStreak = calculateRealDayStreak(childActivities);
     }
 
     // Get last activity time for this child
