@@ -3,7 +3,7 @@ import { db } from "../config/db.js";
 // ✅ GET: Get all log activities for a specific child
 export const getChildLogActivities = async (req, res) => {
   const { childId } = req.params;
-  const { page = 1, limit = 10 } = req.query;
+  const { page, limit } = req.query;
   const userId = req.user.id;
 
   if (!childId) {
@@ -11,11 +11,6 @@ export const getChildLogActivities = async (req, res) => {
   }
 
   try {
-    // Convert page and limit to numbers
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-    const offset = (pageNum - 1) * limitNum;
-
     // Verify that the child belongs to the authenticated user
     const [childCheck] = await db.query(
       `SELECT id, name FROM children WHERE id = ? AND user_id = ?`,
@@ -28,19 +23,7 @@ export const getChildLogActivities = async (req, res) => {
         .json({ message: "Child not found or access denied" });
     }
 
-    // Get total count of activities for this child
-    const [countResult] = await db.query(
-      `SELECT COUNT(*) as total 
-       FROM child_activities ca
-       WHERE ca.child_id = ?`,
-      [childId]
-    );
-
-    const total = countResult[0].total;
-
-    // Get paginated activity logs for the child with detailed information
-    const [activities] = await db.query(
-      `SELECT 
+    let query = `SELECT 
                 ca.id,
                 ca.activity_id,
                 ca.child_id,
@@ -54,7 +37,6 @@ export const getChildLogActivities = async (req, res) => {
                 a.title,
                 a.description,
                 a.category,
-                a.difficulty,
                 a.duration,
                 a.icon,
                 a.isMilestone,
@@ -64,30 +46,61 @@ export const getChildLogActivities = async (req, res) => {
             FROM child_activities ca
             JOIN activities a ON ca.activity_id = a.id
             JOIN children c ON ca.child_id = c.id
-            WHERE ca.child_id = ? 
-            ORDER BY ca.created_at DESC
-            LIMIT ? OFFSET ?`,
-      [childId, limitNum, offset]
-    );
+            WHERE ca.child_id = ?
+            ORDER BY ca.started_at DESC`;
 
-    return res.status(200).json({
-      message: "Child log activities fetched successfully",
-      child: childCheck[0],
-      activities: activities,
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total: total,
-        totalPages: Math.ceil(total / limitNum),
-        hasMore: offset + activities.length < total,
-      },
-      total: total,
-    });
-  } catch (err) {
-    console.error("Get child log activities error:", err);
+    let queryParams = [childId];
+
+    // If pagination parameters are provided, add LIMIT and OFFSET
+    if (page && limit) {
+      const pageNum = parseInt(page);
+      const limitNum = parseInt(limit);
+      const offset = (pageNum - 1) * limitNum;
+
+      query += ` LIMIT ? OFFSET ?`;
+      queryParams.push(limitNum, offset);
+
+      // Get total count for pagination
+      const [countResult] = await db.query(
+        `SELECT COUNT(*) as total 
+         FROM child_activities ca
+         WHERE ca.child_id = ?`,
+        [childId]
+      );
+
+      const total = countResult[0].total;
+
+      // Get paginated activities
+      const [activities] = await db.query(query, queryParams);
+
+      return res.status(200).json({
+        success: true,
+        activities,
+        pagination: {
+          currentPage: pageNum,
+          totalPages: Math.ceil(total / limitNum),
+          totalActivities: total,
+          activitiesPerPage: limitNum,
+          hasNext: pageNum * limitNum < total,
+          hasPrevious: pageNum > 1,
+        },
+        total,
+      });
+    } else {
+      // Get all activities without pagination
+      const [activities] = await db.query(query, queryParams);
+
+      return res.status(200).json({
+        success: true,
+        activities,
+        total: activities.length,
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching child log activities:", error);
     return res.status(500).json({
-      message: "An error occurred while fetching log activities",
-      error: err.message,
+      message: "Error fetching child log activities",
+      error: error.message,
     });
   }
 };
