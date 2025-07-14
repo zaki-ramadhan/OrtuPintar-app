@@ -710,7 +710,10 @@ export default function ReportsPage() {
               />
 
               {/* Milestones & Achievements */}
-              <MilestonesAndAchievements currentChild={currentChild} />
+              <MilestonesAndAchievements
+                currentChild={currentChild}
+                openModal={openModal}
+              />
 
               {/* Recent Activities */}
               <RecentActivities

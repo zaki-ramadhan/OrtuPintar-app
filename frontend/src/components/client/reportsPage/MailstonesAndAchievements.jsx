@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-export default function MilestonesAndAchievements({ currentChild }) {
+export default function MilestonesAndAchievements({ currentChild, openModal }) {
   const [milestones, setMilestones] = useState(null);
   const [loading, setLoading] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL;
@@ -230,36 +230,61 @@ export default function MilestonesAndAchievements({ currentChild }) {
                 return (
                   <div
                     key={milestone.id || index}
-                    className="flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
                   >
-                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-green-900">
+                          {displayTitle}
+                        </p>
+                        <p className="text-sm text-green-700">
+                          Completed{" "}
+                          {formatDate(
+                            milestone.achievedAt ||
+                              milestone.achieved_at ||
+                              milestone.completed_at
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    {openModal && (
+                      <button
+                        onClick={() =>
+                          openModal({
+                            id: milestone.id || `milestone-${index}`,
+                            title: displayTitle,
+                            category: milestone.category || "Milestone",
+                            child: currentChild?.name || "Unknown",
+                            status: "completed",
+                            date:
+                              milestone.achievedAt ||
+                              milestone.achieved_at ||
+                              milestone.completed_at ||
+                              new Date().toISOString(),
+                            time: "00:00",
+                            milestoneData: milestone,
+                          })
+                        }
+                        className="text-green-600 hover:text-green-700 text-xs font-medium px-2 py-1 rounded border border-green-300 hover:bg-green-100 transition-colors"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-green-900">
-                        {displayTitle}
-                      </p>
-                      <p className="text-sm text-green-700">
-                        Completed{" "}
-                        {formatDate(
-                          milestone.achievedAt ||
-                            milestone.achieved_at ||
-                            milestone.completed_at
-                        )}
-                      </p>
-                    </div>
+                        View Details
+                      </button>
+                    )}
                   </div>
                 );
               })
@@ -330,9 +355,33 @@ export default function MilestonesAndAchievements({ currentChild }) {
                       <p className="font-medium text-blue-900">
                         {displayTitle}
                       </p>
-                      <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
-                        In Progress
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">
+                          In Progress
+                        </span>
+                        {openModal && (
+                          <button
+                            onClick={() =>
+                              openModal({
+                                id:
+                                  milestone.id || `milestone-progress-${index}`,
+                                title: displayTitle,
+                                category: milestone.category || "Milestone",
+                                child: currentChild?.name || "Unknown",
+                                status: "in_progress",
+                                date:
+                                  milestone.started_at ||
+                                  new Date().toISOString(),
+                                time: "00:00",
+                                milestoneData: milestone,
+                              })
+                            }
+                            className="text-blue-600 hover:text-blue-700 text-xs font-medium px-2 py-1 rounded border border-blue-300 hover:bg-blue-100 transition-colors"
+                          >
+                            View Details
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <p className="text-xs text-blue-700">
                       {milestone.description ||
