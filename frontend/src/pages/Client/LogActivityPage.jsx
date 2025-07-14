@@ -26,6 +26,12 @@ export default function LogActivityPage() {
   const [filterCategory, setFilterCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalActivities, setTotalActivities] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const activitiesPerPage = 10;
+
   // Function to fetch initial data
   const fetchInitialData = async () => {
     const token = localStorage.getItem("token");
@@ -44,37 +50,91 @@ export default function LogActivityPage() {
   };
 
   // Function to fetch log activities for current child
-  const fetchLogActivities = useCallback(async () => {
-    if (!children[activeChild]) return;
+  const fetchLogActivities = useCallback(
+    async (page = 1, isLoadMore = false) => {
+      if (!children[activeChild]) return;
 
-    const currentChild = children[activeChild];
-    const token = localStorage.getItem("token");
+      const currentChild = children[activeChild];
+      const token = localStorage.getItem("token");
 
-    try {
-      // Fetch log activities for current child
-      const activitiesResponse = await axios.get(
-        `${API_URL}/log-activities/child/${currentChild.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+      if (!isLoadMore) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      try {
+        // Fetch log activities for current child with pagination
+        const activitiesResponse = await axios.get(
+          `${API_URL}/log-activities/child/${currentChild.id}?page=${page}&limit=${activitiesPerPage}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const newActivities = activitiesResponse.data.activities || [];
+        const total = activitiesResponse.data.total || 0;
+
+        if (isLoadMore) {
+          // Append new activities to existing ones
+          setActivities((prev) => [...prev, ...newActivities]);
+        } else {
+          // Replace activities (first load or refresh)
+          setActivities(newActivities);
         }
-      );
 
-      setActivities(activitiesResponse.data.activities || []);
+        setTotalActivities(total);
+        setCurrentPage(page);
 
-      // Fetch statistics for current child
-      const statsResponse = await axios.get(
-        `${API_URL}/log-activities/stats/${currentChild.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+        // Fetch statistics for current child
+        const statsResponse = await axios.get(
+          `${API_URL}/log-activities/stats/${currentChild.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        setStats(statsResponse.data.stats || {});
+      } catch (err) {
+        console.error("Error fetching log activities:", err);
+        toast.error("Failed to load log activities");
+      } finally {
+        if (!isLoadMore) {
+          setLoading(false);
+        } else {
+          setLoadingMore(false);
         }
-      );
+      }
+    },
+    [children, activeChild, activitiesPerPage]
+  );
 
-      setStats(statsResponse.data.stats || {});
-    } catch (err) {
-      console.error("Error fetching log activities:", err);
-      toast.error("Failed to load log activities");
-    }
-  }, [children, activeChild]);
+  // Function to handle Load More
+  const handleLoadMore = async () => {
+    const currentActivitiesCount = activities.length;
+    const nextPage = currentPage + 1;
+
+    await fetchLogActivities(nextPage, true);
+
+    // Smooth scroll to the first new activity after loading
+    setTimeout(() => {
+      const activityCards = document.querySelectorAll("[data-activity-card]");
+      if (activityCards[currentActivitiesCount]) {
+        activityCards[currentActivitiesCount].scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 100);
+  };
+
+  // Function to reset pagination when child changes
+  const resetAndFetch = useCallback(() => {
+    setActivities([]);
+    setCurrentPage(1);
+    setTotalActivities(0);
+    fetchLogActivities(1, false);
+  }, [fetchLogActivities]);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -93,9 +153,9 @@ export default function LogActivityPage() {
   // Fetch data when active child changes
   useEffect(() => {
     if (children.length > 0 && children[activeChild]) {
-      fetchLogActivities();
+      resetAndFetch();
     }
-  }, [activeChild, children, fetchLogActivities]);
+  }, [activeChild, children, resetAndFetch]);
 
   const calculateAge = (birthDateString) => {
     const today = new Date();
@@ -187,6 +247,10 @@ export default function LogActivityPage() {
               activities={activities}
               currentChild={currentChild}
               formatDateTime={formatDateTime}
+              totalActivities={totalActivities}
+              onLoadMore={handleLoadMore}
+              loadingMore={loadingMore}
+              hasMore={activities.length < totalActivities}
             />
           </>
         ) : children.length === 0 ? (

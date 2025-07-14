@@ -3,6 +3,7 @@ import { db } from "../config/db.js";
 // ✅ GET: Get all log activities for a specific child
 export const getChildLogActivities = async (req, res) => {
   const { childId } = req.params;
+  const { page = 1, limit = 10 } = req.query;
   const userId = req.user.id;
 
   if (!childId) {
@@ -10,6 +11,11 @@ export const getChildLogActivities = async (req, res) => {
   }
 
   try {
+    // Convert page and limit to numbers
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
+
     // Verify that the child belongs to the authenticated user
     const [childCheck] = await db.query(
       `SELECT id, name FROM children WHERE id = ? AND user_id = ?`,
@@ -22,7 +28,17 @@ export const getChildLogActivities = async (req, res) => {
         .json({ message: "Child not found or access denied" });
     }
 
-    // Get all activity logs for the child with detailed information
+    // Get total count of activities for this child
+    const [countResult] = await db.query(
+      `SELECT COUNT(*) as total 
+       FROM child_activities ca
+       WHERE ca.child_id = ?`,
+      [childId]
+    );
+
+    const total = countResult[0].total;
+
+    // Get paginated activity logs for the child with detailed information
     const [activities] = await db.query(
       `SELECT 
                 ca.id,
@@ -49,14 +65,23 @@ export const getChildLogActivities = async (req, res) => {
             JOIN activities a ON ca.activity_id = a.id
             JOIN children c ON ca.child_id = c.id
             WHERE ca.child_id = ? 
-            ORDER BY ca.created_at DESC`,
-      [childId]
+            ORDER BY ca.created_at DESC
+            LIMIT ? OFFSET ?`,
+      [childId, limitNum, offset]
     );
 
     return res.status(200).json({
       message: "Child log activities fetched successfully",
       child: childCheck[0],
       activities: activities,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: total,
+        totalPages: Math.ceil(total / limitNum),
+        hasMore: offset + activities.length < total,
+      },
+      total: total,
     });
   } catch (err) {
     console.error("Get child log activities error:", err);

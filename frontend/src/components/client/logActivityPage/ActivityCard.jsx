@@ -1,13 +1,4 @@
 export default function ActivityCard({ activity, formatDateTime }) {
-  // Debug: log the activity prop before any processing
-  console.log(`🔎 ActivityCard received activity ${activity.id}:`, {
-    title: activity.title,
-    titleLength: activity.title?.length,
-    isMilestone: activity.isMilestone,
-    titleType: typeof activity.title,
-    titleBytes: Array.from(activity.title || "").map((c) => c.charCodeAt(0)),
-  });
-
   const getStatusColor = (status) => {
     switch (status) {
       case "completed":
@@ -35,7 +26,10 @@ export default function ActivityCard({ activity, formatDateTime }) {
   };
 
   return (
-    <div className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+    <div
+      className="p-4 sm:p-6 hover:bg-gray-50 transition-colors"
+      data-activity-card
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-4 flex-1">
           <div className="flex-shrink-0">
@@ -46,12 +40,8 @@ export default function ActivityCard({ activity, formatDateTime }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-2">
               <h4 className="text-lg font-semibold text-gray-900 flex items-center flex-wrap gap-2">
-                {/* Ensure clean string rendering */}
-                {console.log(
-                  `🔧 Rendering title: "${activity.title}" for activity ${activity.id}`
-                )}
-                {String(activity.title)}
-                {activity.isMilestone && (
+                {activity.title}
+                {Boolean(activity.isMilestone) && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-400 text-white shadow-sm">
                     <span className="mr-1">🏆</span>
                     Milestone
