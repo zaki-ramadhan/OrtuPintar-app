@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import ActivityModal from "../../modals/ActivityModal";
 import ConfirmationModal from "../../modals/ConfirmationModal";
@@ -756,7 +756,7 @@ export default function ContentManagementTab({
     try {
       const token = getAuthToken();
       const response = await axios.get(
-        "http://localhost:3000/api/admin/activities/categories",
+        `${API_URL}/admin/activities/categories`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -774,60 +774,74 @@ export default function ContentManagementTab({
   };
 
   // Fetch activities from API
-  const fetchActivities = async () => {
-    setLoading(true);
-    try {
-      const token = getAuthToken();
-      const params = new URLSearchParams({
-        page: pagination.page,
-        limit: pagination.limit,
-        search: filters.search,
-        category: filters.category,
-        status: filters.status,
-        sortBy: filters.sortBy,
-      });
+  const fetchActivities = useCallback(
+    async (currentPagination = pagination, currentFilters = filters) => {
+      setLoading(true);
+      try {
+        const token = getAuthToken();
+        const params = new URLSearchParams({
+          page: currentPagination.page,
+          limit: currentPagination.limit,
+          search: currentFilters.search,
+          category: currentFilters.category,
+          status: currentFilters.status,
+          sortBy: currentFilters.sortBy,
+        });
 
-      const response = await axios.get(
-        `http://localhost:3000/api/admin/activities?${params}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        console.log("🔍 Fetching activities with params:", {
+          page: currentPagination.page,
+          limit: currentPagination.limit,
+          search: currentFilters.search,
+          category: currentFilters.category,
+          status: currentFilters.status,
+          sortBy: currentFilters.sortBy,
+        });
+
+        const response = await axios.get(
+          `${API_URL}/admin/activities?${params}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data.success) {
+          console.log(
+            "✅ Activities fetched:",
+            response.data.data.length,
+            "items"
+          );
+          setActivities(response.data.data);
+          setPagination((prev) => ({
+            ...prev,
+            total: response.data.total,
+            totalPages: response.data.totalPages,
+          }));
         }
-      );
-
-      if (response.data.success) {
-        setActivities(response.data.data);
-        setPagination((prev) => ({
-          ...prev,
-          total: response.data.total,
-          totalPages: response.data.totalPages,
-        }));
+      } catch (error) {
+        console.error("Error fetching activities:", error);
+        if (error.response?.status === 401) {
+          localStorage.removeItem("adminToken");
+          window.location.href = "/admin/login";
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching activities:", error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem("adminToken");
-        window.location.href = "/admin/login";
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    []
+  ); // Remove dependencies to prevent stale closures
 
   // Fetch activity statistics
   const fetchStats = async () => {
     setStatsLoading(true);
     try {
       const token = getAuthToken();
-      const response = await axios.get(
-        "http://localhost:3000/api/admin/activities/stats",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(`${API_URL}/admin/activities/stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.data.success) {
         setStats(response.data.data);
@@ -858,7 +872,8 @@ export default function ContentManagementTab({
 
   // Handle refresh
   const handleRefresh = () => {
-    fetchActivities();
+    console.log("🔄 Manual refresh triggered");
+    fetchActivities(pagination, filters);
     fetchStats();
   };
 
@@ -904,25 +919,37 @@ export default function ContentManagementTab({
         "Content-Type": "application/json",
       };
 
+      console.log("💾 Saving activity:", activityModal.mode, formData);
+
       if (activityModal.mode === "add") {
         // Create new activity
-        await axios.post(
-          "http://localhost:3000/api/admin/activities",
+        const response = await axios.post(
+          `${API_URL}/admin/activities`,
           formData,
           { headers }
         );
+        console.log("✅ Activity created:", response.data);
       } else if (activityModal.mode === "edit") {
         // Update existing activity
-        await axios.put(
-          `http://localhost:3000/api/admin/activities/${activityModal.activity.id}`,
+        const response = await axios.put(
+          `${API_URL}/admin/activities/${activityModal.activity.id}`,
           formData,
           { headers }
         );
+        console.log("✅ Activity updated:", response.data);
       }
 
-      // Refresh data
-      await fetchActivities();
-      await fetchStats();
+      // Close modal first
+      closeActivityModal();
+
+      // Then refresh data with current state - use functional updates
+      console.log("🔄 Refreshing data after save...");
+      await Promise.all([
+        fetchActivities(), // This will use current pagination/filters from state
+        fetchStats(),
+      ]);
+
+      console.log("✅ Data refreshed successfully");
     } catch (error) {
       console.error("Error saving activity:", error);
       throw error;
@@ -933,18 +960,20 @@ export default function ContentManagementTab({
   const handleActivityDelete = async (activityId) => {
     try {
       const token = getAuthToken();
-      await axios.delete(
-        `http://localhost:3000/api/admin/activities/${activityId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      console.log("🗑️ Deleting activity:", activityId);
 
-      // Refresh data
-      await fetchActivities();
-      await fetchStats();
+      await axios.delete(`${API_URL}/admin/activities/${activityId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("✅ Activity deleted, refreshing data...");
+
+      // Refresh data with current state
+      await Promise.all([fetchActivities(), fetchStats()]);
+
+      console.log("✅ Data refreshed after delete");
     } catch (error) {
       console.error("Error deleting activity:", error);
       throw error;
@@ -961,10 +990,22 @@ export default function ContentManagementTab({
 
   // Load data on component mount and filter changes
   useEffect(() => {
-    fetchActivities();
-  }, [pagination.page, filters]);
+    console.log("🔄 UseEffect triggered - fetching activities");
+    console.log("Current pagination:", pagination);
+    console.log("Current filters:", filters);
+    fetchActivities(pagination, filters);
+  }, [
+    pagination.page,
+    filters.search,
+    filters.category,
+    filters.status,
+    filters.sortBy,
+    fetchActivities,
+  ]);
 
+  // Separate useEffect for initial data
   useEffect(() => {
+    console.log("🔄 Component mounted - fetching initial data");
     fetchStats();
     fetchCategories();
   }, []);
