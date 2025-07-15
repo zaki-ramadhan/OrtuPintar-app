@@ -207,16 +207,8 @@ export default function DashboardPage() {
             openConfirmModal={openConfirmModal}
           />
         )}{" "}
-        {/* Reports Tab */}
-        {activeTab === "reports" && (
-          <ReportsTab analyticsData={analyticsData} />
-        )}{" "}
-        {/* Settings Tab */}
-        {activeTab === "settings" && <SettingsTab />}
         {/* Other tabs fallback */}
-        {!["overview", "users", "content", "reports", "settings"].includes(
-          activeTab
-        ) && (
+        {!["overview", "users", "content"].includes(activeTab) && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center">
             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
               {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Section
