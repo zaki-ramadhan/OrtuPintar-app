@@ -12,8 +12,11 @@ import {
   TabNavigation,
   ProfileTab,
   ChildrenTab,
-  SecurityTab
+  SecurityTab,
 } from "@/components/client/userAccountPage";
+import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function UserAccount() {
   const navigate = useNavigate();
@@ -65,32 +68,31 @@ export default function UserAccount() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/children", {
+      const response = await axios.get(`${API_URL}/children`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Children data:", data);
+      const data = response.data;
+      console.log("Children data:", data);
 
-        // Transform data untuk include avatar dan lastAssessment
-        const transformedChildren = data.children.map((child) => ({
-          ...child,
-          avatar: child.gender === "Female" ? "👧" : "�",
-          lastAssessment: new Date().toISOString().split("T")[0], // Today's date
-        }));
+      // Transform data untuk include avatar dan lastAssessment
+      const transformedChildren = data.children.map((child) => ({
+        ...child,
+        avatar: child.gender === "Female" ? "👧" : "�",
+        lastAssessment: new Date().toISOString().split("T")[0], // Today's date
+      }));
 
-        setChildren(transformedChildren);
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Failed to fetch children");
-      }
+      setChildren(transformedChildren);
     } catch (error) {
       console.error("Error fetching children:", error);
-      toast.error("Network error. Please try again.");
+      if (error.response) {
+        toast.error(error.response.data.message || "Failed to fetch children");
+      } else {
+        toast.error("Network error. Please try again.");
+      }
     } finally {
       setChildrenLoading(false);
     }
@@ -105,32 +107,31 @@ export default function UserAccount() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/users/profile", {
+      const response = await axios.get(`${API_URL}/users/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-        setProfileData((prev) => ({
-          ...prev,
-          name: data.user.name || "",
-          email: data.user.email || "",
-          phone: data.user.phone || "",
-          location: data.user.location || "",
-          joinDate: data.user.joinDate || "",
-          avatar: data.user.avatar || null,
-        }));
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Failed to fetch profile");
-      }
+      const data = response.data;
+      setUser(data.user);
+      setProfileData((prev) => ({
+        ...prev,
+        name: data.user.name || "",
+        email: data.user.email || "",
+        phone: data.user.phone || "",
+        location: data.user.location || "",
+        joinDate: data.user.joinDate || "",
+        avatar: data.user.avatar || null,
+      }));
     } catch (error) {
       console.error("Error fetching profile:", error);
-      toast.error("Network error. Please try again.");
+      if (error.response) {
+        toast.error(error.response.data.message || "Failed to fetch profile");
+      } else {
+        toast.error("Network error. Please try again.");
+      }
     }
   };
 
@@ -161,29 +162,28 @@ export default function UserAccount() {
         location: profileData.location.trim(),
       };
 
-      const response = await fetch("http://localhost:5000/api/users/profile", {
-        method: "PUT",
+      const response = await axios.put(`${API_URL}/users/profile`, updateData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updateData),
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {        // Update localStorage with latest data
-        localStorage.setItem("user", JSON.stringify(data.user));
-        setUser(data.user);
+      // Update localStorage with latest data
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
 
-        toast.success(data.message || "Profile updated successfully!");
-        setIsEditing(false);
-      } else {
-        toast.error(data.message || "Failed to update profile");
-      }
+      toast.success(data.message || "Profile updated successfully!");
+      setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("Network error. Please try again.");
+      if (error.response) {
+        toast.error(error.response.data.message || "Failed to update profile");
+      } else {
+        toast.error("Network error. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -222,27 +222,29 @@ export default function UserAccount() {
 
       console.log("🔍 Frontend sending data:", transformedData);
 
-      const response = await fetch("http://localhost:5000/api/children", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(transformedData),
-      });
+      const response = await axios.post(
+        `${API_URL}/children`,
+        transformedData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        toast.success(data.message || "Child added successfully!");
-        setShowAddChildModal(false);
-        fetchChildren(); // Refresh children list
-      } else {
-        toast.error(data.message || "Failed to add child");
-      }
+      toast.success(data.message || "Child added successfully!");
+      setShowAddChildModal(false);
+      fetchChildren(); // Refresh children list
     } catch (error) {
       console.error("Error adding child:", error);
-      toast.error("Network error. Please try again.");
+      if (error.response) {
+        toast.error(error.response.data.message || "Failed to add child");
+      } else {
+        toast.error("Network error. Please try again.");
+      }
     }
   };
 
@@ -268,31 +270,30 @@ export default function UserAccount() {
         photoUrl: childData.avatar || null,
       };
 
-      const response = await fetch(
-        `http://localhost:5000/api/children/${editingChild.id}`,
+      const response = await axios.put(
+        `${API_URL}/children/${editingChild.id}`,
+        transformedData,
         {
-          method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(transformedData),
         }
       );
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        toast.success(data.message || "Child updated successfully!");
-        setShowEditChildModal(false);
-        setEditingChild(null);
-        fetchChildren(); // Refresh children list
-      } else {
-        toast.error(data.message || "Failed to update child");
-      }
+      toast.success(data.message || "Child updated successfully!");
+      setShowEditChildModal(false);
+      setEditingChild(null);
+      fetchChildren(); // Refresh children list
     } catch (error) {
       console.error("Error updating child:", error);
-      toast.error("Network error. Please try again.");
+      if (error.response) {
+        toast.error(error.response.data.message || "Failed to update child");
+      } else {
+        toast.error("Network error. Please try again.");
+      }
     }
   };
 
@@ -313,10 +314,9 @@ export default function UserAccount() {
         return;
       }
 
-      const response = await fetch(
-        `http://localhost:5000/api/children/${deletingChild.id}`,
+      const response = await axios.delete(
+        `${API_URL}/children/${deletingChild.id}`,
         {
-          method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -324,19 +324,19 @@ export default function UserAccount() {
         }
       );
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        toast.success(data.message || "Child removed successfully");
-        setShowDeleteChildModal(false);
-        setDeletingChild(null);
-        fetchChildren(); // Refresh children list
-      } else {
-        toast.error(data.message || "Failed to remove child");
-      }
+      toast.success(data.message || "Child removed successfully");
+      setShowDeleteChildModal(false);
+      setDeletingChild(null);
+      fetchChildren(); // Refresh children list
     } catch (error) {
       console.error("Error deleting child:", error);
-      toast.error("Network error. Please try again.");
+      if (error.response) {
+        toast.error(error.response.data.message || "Failed to remove child");
+      } else {
+        toast.error("Network error. Please try again.");
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -363,34 +363,33 @@ export default function UserAccount() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/users/delete-account", {
-        method: "DELETE",
+      const response = await axios.delete(`${API_URL}/users/delete-account`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        // Clear all local storage
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
+      // Clear all local storage
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
 
-        toast.success(data.message || "Account deleted successfully");
-        setShowDeleteAccountModal(false);
+      toast.success(data.message || "Account deleted successfully");
+      setShowDeleteAccountModal(false);
 
-        // Redirect to landing page after a short delay
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
-      } else {
-        toast.error(data.message || "Failed to delete account");
-      }
+      // Redirect to landing page after a short delay
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error("Network error. Please try again.");
+      if (error.response) {
+        toast.error(error.response.data.message || "Failed to delete account");
+      } else {
+        toast.error("Network error. Please try again.");
+      }
     } finally {
       setIsDeletingAccount(false);
     }
@@ -431,36 +430,35 @@ export default function UserAccount() {
         return;
       }
 
-      const response = await fetch(
-        "http://localhost:5000/api/users/change-password",
+      const response = await axios.put(
+        `${API_URL}/users/change-password`,
         {
-          method: "PUT",
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        },
+        {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            currentPassword: passwordData.currentPassword,
-            newPassword: passwordData.newPassword,
-          }),
         }
       );
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        toast.success(data.message || "Password changed successfully!");
-        setPasswordData({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-      } else {
-        toast.error(data.message || "Failed to change password");
-      }
+      toast.success(data.message || "Password changed successfully!");
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     } catch (error) {
       console.error("Error changing password:", error);
-      toast.error("Network error. Please try again.");
+      if (error.response) {
+        toast.error(error.response.data.message || "Failed to change password");
+      } else {
+        toast.error("Network error. Please try again.");
+      }
     } finally {
       setIsChangingPassword(false);
     }
@@ -488,13 +486,8 @@ export default function UserAccount() {
           children={children}
           onAvatarChange={handleAvatarChange}
         />
-
         {/* Navigation Tabs */}
-        <TabNavigation
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-
+        <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
         {/* Tab Content */}
         {activeTab === "profile" && (
           <ProfileTab
@@ -506,7 +499,6 @@ export default function UserAccount() {
             onProfileUpdate={handleProfileUpdate}
           />
         )}
-
         {activeTab === "children" && (
           <ChildrenTab
             children={children}
@@ -515,7 +507,8 @@ export default function UserAccount() {
             onDeleteChild={handleDeleteChild}
             calculateAge={calculateAge}
           />
-        )}        {activeTab === "security" && (
+        )}{" "}
+        {activeTab === "security" && (
           <SecurityTab
             passwordData={passwordData}
             setPasswordData={setPasswordData}
