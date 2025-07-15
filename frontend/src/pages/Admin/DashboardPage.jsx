@@ -172,7 +172,6 @@ export default function DashboardPage() {
       <main className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 relative z-10">
         {activeTab === "overview" && (
           <OverviewTab
-            dashboardData={dashboardData}
             getStatusColor={getStatusColor}
             getActivityIcon={getActivityIcon}
           />

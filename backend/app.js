@@ -12,6 +12,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import debugRoutes from "./routes/debugRoutes.js";
 import milestoneRoutes from "./routes/milestoneRoutes.js";
 import logActivityRoutes from "./routes/logActivityRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 const app = express();
 
@@ -32,5 +33,6 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/debug", debugRoutes);
 app.use("/api/milestones", milestoneRoutes);
 app.use("/api/log-activities", logActivityRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 export default app;
