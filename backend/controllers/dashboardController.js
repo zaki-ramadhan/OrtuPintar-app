@@ -631,6 +631,30 @@ export const getAdminNotifications = async (req, res) => {
 
     console.log("📬 Fetching admin notifications...");
 
+    const adminId = req.user.id;
+
+    // Create admin_notification_reads table if not exists
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS admin_notification_reads (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        admin_id INT NOT NULL,
+        marked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_admin (admin_id),
+        INDEX(admin_id)
+      )
+    `);
+
+    // Get admin's last read timestamp
+    const [readStatus] = await db.execute(
+      `
+      SELECT marked_at FROM admin_notification_reads WHERE admin_id = ? ORDER BY marked_at DESC LIMIT 1
+    `,
+      [adminId]
+    );
+
+    const lastReadTime = readStatus.length > 0 ? readStatus[0].marked_at : null;
+    console.log(`📖 Admin last read time: ${lastReadTime}`);
+
     // Get recent user registrations (last 7 days)
     const [recentUsers] = await db.execute(`
       SELECT 
@@ -673,16 +697,21 @@ export const getAdminNotifications = async (req, res) => {
 
     // Add user registration notifications
     recentUsers.forEach((user) => {
+      const isRead = lastReadTime
+        ? new Date(user.created_at) <= new Date(lastReadTime)
+        : false;
+
       notifications.push({
         id: notificationId++,
         type: "user_registration",
         message: `New user registered: ${user.name || "Unknown User"}`,
         time: formatTimeAgo(user.created_at),
-        read: false,
+        read: isRead,
         metadata: {
           userId: user.id,
           userEmail: user.email,
           childrenCount: user.children_count,
+          createdAt: user.created_at,
         },
       });
     });
@@ -693,6 +722,9 @@ export const getAdminNotifications = async (req, res) => {
       const childInfo = notification.child_name
         ? ` (${notification.child_name})`
         : "";
+      const isRead = lastReadTime
+        ? new Date(notification.created_at) <= new Date(lastReadTime)
+        : false;
 
       let adminMessage = "";
       switch (notification.type) {
@@ -717,23 +749,23 @@ export const getAdminNotifications = async (req, res) => {
         type: `user_${notification.type}`,
         message: adminMessage,
         time: formatTimeAgo(notification.created_at),
-        read: Math.random() > 0.6, // Random read status for demo
+        read: isRead,
         metadata: {
           originalNotificationId: notification.id,
           userId: notification.user_name,
           userEmail: notification.user_email,
           childName: notification.child_name,
           originalType: notification.type,
+          createdAt: notification.created_at,
         },
       });
     });
 
     // Sort by most recent (by actual date)
     notifications.sort((a, b) => {
-      // Extract actual date from time string for better sorting
-      const timeA = a.metadata?.originalCreatedAt || new Date();
-      const timeB = b.metadata?.originalCreatedAt || new Date();
-      return new Date(timeB) - new Date(timeA);
+      const timeA = new Date(a.metadata?.createdAt || new Date());
+      const timeB = new Date(b.metadata?.createdAt || new Date());
+      return timeB - timeA;
     });
 
     console.log(`📬 Generated ${notifications.length} admin notifications`);
@@ -748,12 +780,61 @@ export const getAdminNotifications = async (req, res) => {
         recentUsers: recentUsers.length,
         userNotifications: userNotifications.length,
         totalGenerated: notifications.length,
+        lastReadTime: lastReadTime,
       },
     });
   } catch (error) {
     console.error("❌ Admin notifications error:", error);
     res.status(500).json({
       message: "Failed to fetch admin notifications",
+      error: error.message,
+    });
+  }
+};
+
+// 🔔 MARK ADMIN NOTIFICATIONS AS READ
+export const markAdminNotificationsAsRead = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    const adminId = req.user.id;
+    console.log(
+      `📬 Marking all admin notifications as read for admin: ${adminId}`
+    );
+
+    // Create admin_notification_reads table if not exists
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS admin_notification_reads (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        admin_id INT NOT NULL,
+        marked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX(admin_id)
+      )
+    `);
+
+    // Insert or update read status for this admin
+    await db.execute(
+      `
+      INSERT INTO admin_notification_reads (admin_id, marked_at) 
+      VALUES (?, NOW())
+      ON DUPLICATE KEY UPDATE marked_at = NOW()
+    `,
+      [adminId]
+    );
+
+    console.log(`✅ Admin notifications marked as read for admin: ${adminId}`);
+
+    res.json({
+      message: "All admin notifications marked as read",
+      adminId: adminId,
+      markedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("❌ Mark admin notifications as read error:", error);
+    res.status(500).json({
+      message: "Failed to mark admin notifications as read",
       error: error.message,
     });
   }

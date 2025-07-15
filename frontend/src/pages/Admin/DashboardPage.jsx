@@ -140,6 +140,28 @@ export default function DashboardPage() {
 
   const onReadNotifications = async () => {
     try {
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        console.log("❌ No admin token found");
+        return;
+      }
+
+      console.log("📬 Marking all admin notifications as read...");
+
+      // Call backend API to mark as read
+      const response = await axios.put(
+        `${API_URL}/dashboard/admin-notifications/read-all`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("✅ Mark as read response:", response.data);
+
       // Mark all notifications as read locally
       setNotifications((prev) =>
         prev.map((n) => ({
@@ -148,13 +170,19 @@ export default function DashboardPage() {
         }))
       );
 
-      console.log("📬 Marked all admin notifications as read");
       toast.success("All notifications marked as read");
-
-      // Here you could add an API call to mark them as read on the server
-      // For now, we'll just update the local state
     } catch (error) {
       console.error("❌ Error marking notifications as read:", error);
+      console.error("❌ Error response:", error.response?.data);
+
+      // Still update local state even if API fails
+      setNotifications((prev) =>
+        prev.map((n) => ({
+          ...n,
+          read: true,
+        }))
+      );
+
       toast.error("Failed to mark notifications as read");
     }
   };

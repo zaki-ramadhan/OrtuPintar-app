@@ -6,6 +6,7 @@ import {
   getAllDashboardData,
   getSystemHealthDetails,
   getAdminNotifications,
+  markAdminNotificationsAsRead,
 } from "../controllers/dashboardController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -28,5 +29,12 @@ router.get("/recent-activities", verifyToken, getRecentActivities);
 
 // Get admin notifications
 router.get("/admin-notifications", verifyToken, getAdminNotifications);
+
+// Mark admin notifications as read
+router.put(
+  "/admin-notifications/read-all",
+  verifyToken,
+  markAdminNotificationsAsRead
+);
 
 export default router;
