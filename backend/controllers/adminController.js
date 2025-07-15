@@ -121,12 +121,37 @@ export const createUser = async (req, res) => {
       location = "",
     } = req.body;
 
+    console.log("➕ Create user request:", {
+      name,
+      email,
+      role,
+      phone,
+      location,
+      hasPassword: !!password,
+    });
+
+    // Validate required fields
+    if (!name || !email || !password) {
+      console.log("❌ Missing required fields:", {
+        name: !!name,
+        email: !!email,
+        password: !!password,
+      });
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and password are required",
+      });
+    }
+
     // Check if user already exists
-    const existingUser = await db.query(
+    const [existingUserRows] = await db.query(
       "SELECT id FROM users WHERE email = ?",
       [email]
     );
-    if (existingUser.length > 0) {
+    console.log("📧 Email check result:", existingUserRows);
+
+    if (existingUserRows.length > 0) {
+      console.log("❌ Email already exists:", email);
       return res.status(400).json({
         success: false,
         message: "User with this email already exists",
@@ -136,6 +161,7 @@ export const createUser = async (req, res) => {
     // Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
+    console.log("🔐 Password hashed successfully");
 
     // Insert new user
     const insertQuery = `
@@ -143,7 +169,17 @@ export const createUser = async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, NOW())
     `;
 
-    const result = await db.query(insertQuery, [
+    console.log("📝 Insert query:", insertQuery);
+    console.log("📊 Insert params:", [
+      name,
+      email,
+      "[HIDDEN]",
+      role,
+      phone,
+      location,
+    ]);
+
+    const [insertResult] = await db.query(insertQuery, [
       name,
       email,
       hashedPassword,
@@ -152,19 +188,24 @@ export const createUser = async (req, res) => {
       location,
     ]);
 
+    console.log("✅ Insert result:", insertResult);
+    console.log("🆔 New user ID:", insertResult.insertId);
+
     // Get the created user
-    const newUser = await db.query(
+    const [newUserRows] = await db.query(
       "SELECT id, name, email, role, phone, location, created_at FROM users WHERE id = ?",
-      [result.insertId]
+      [insertResult.insertId]
     );
+
+    console.log("👤 Created user data:", newUserRows[0]);
 
     res.status(201).json({
       success: true,
       message: "User created successfully",
-      data: newUser[0],
+      data: newUserRows[0],
     });
   } catch (error) {
-    console.error("Error creating user:", error);
+    console.error("❌ Error creating user:", error);
     res.status(500).json({
       success: false,
       message: "Error creating user",
