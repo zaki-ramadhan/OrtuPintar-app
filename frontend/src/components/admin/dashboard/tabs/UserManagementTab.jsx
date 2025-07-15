@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import UserManagementModal from "../../modals/UserManagementModal";
+import AdminModal from "../../modals/AdminModal";
 
 function UserManagementHeader({ openUserModal, onExportUsers, totalUsers }) {
   return (
@@ -362,6 +363,12 @@ export default function UserManagementTab({ onModalStateChange }) {
     userData: null,
   });
 
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    userData: null,
+    loading: false,
+  });
+
   const API_URL = import.meta.env.VITE_API_URL;
 
   // Fetch users data
@@ -442,9 +449,9 @@ export default function UserManagementTab({ onModalStateChange }) {
   // Report modal state change to parent
   useEffect(() => {
     if (onModalStateChange) {
-      onModalStateChange(userModal.isOpen);
+      onModalStateChange(userModal.isOpen || deleteModal.isOpen);
     }
-  }, [userModal.isOpen, onModalStateChange]);
+  }, [userModal.isOpen, deleteModal.isOpen, onModalStateChange]);
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
@@ -481,6 +488,23 @@ export default function UserManagementTab({ onModalStateChange }) {
     });
   };
 
+  // Delete modal handlers
+  const openDeleteModal = (userData) => {
+    setDeleteModal({
+      isOpen: true,
+      userData,
+      loading: false,
+    });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      userData: null,
+      loading: false,
+    });
+  };
+
   // User CRUD operations
   const handleUserSave = async (userData) => {
     try {
@@ -490,26 +514,36 @@ export default function UserManagementTab({ onModalStateChange }) {
         throw new Error("No admin token found");
       }
 
+      console.log("💾 Saving user data:", userData);
+      console.log("🔧 Modal mode:", userModal.mode);
+
       if (userModal.mode === "add") {
+        console.log("➕ Creating new user...");
         const response = await axios.post(`${API_URL}/admin/users`, userData, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("✅ Create response:", response.data);
         if (response.data.success) {
           toast.success("User created successfully");
           fetchUsers(); // Refresh the list
         }
       } else if (userModal.mode === "edit") {
+        console.log("✏️ Updating user with ID:", userData.id);
+        console.log("📤 Update payload:", userData);
+
         const response = await axios.put(
           `${API_URL}/admin/users/${userData.id}`,
           userData,
           {
             headers: {
               Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
           }
         );
+        console.log("✅ Update response:", response.data);
         if (response.data.success) {
           toast.success("User updated successfully");
           fetchUsers(); // Refresh the list
@@ -518,35 +552,42 @@ export default function UserManagementTab({ onModalStateChange }) {
       closeUserModal();
     } catch (err) {
       console.error("Error saving user:", err);
-      toast.error("Failed to save user");
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+      toast.error(err.response?.data?.message || "Failed to save user");
     }
   };
 
-  const handleUserDelete = async (user) => {
-    if (window.confirm(`Are you sure you want to delete ${user.name}?`)) {
-      try {
-        const token = localStorage.getItem("adminToken");
+  const handleUserDelete = async () => {
+    if (!deleteModal.userData) return;
 
-        if (!token) {
-          throw new Error("No admin token found");
-        }
+    try {
+      setDeleteModal((prev) => ({ ...prev, loading: true }));
 
-        const response = await axios.delete(
-          `${API_URL}/admin/users/${user.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.data.success) {
-          toast.success("User deleted successfully");
-          fetchUsers(); // Refresh the list
-        }
-      } catch (err) {
-        console.error("Error deleting user:", err);
-        toast.error("Failed to delete user");
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        throw new Error("No admin token found");
       }
+
+      const response = await axios.delete(
+        `${API_URL}/admin/users/${deleteModal.userData.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("User deleted successfully");
+        fetchUsers(); // Refresh the list
+        closeDeleteModal();
+      }
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      toast.error("Failed to delete user");
+      setDeleteModal((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -600,7 +641,7 @@ export default function UserManagementTab({ onModalStateChange }) {
       <UsersTable
         users={users}
         onUserEdit={(user) => openUserModal("edit", user)}
-        onUserDelete={handleUserDelete}
+        onUserDelete={(user) => openDeleteModal(user)}
         onUserView={(user) => openUserModal("view", user)}
         loading={loading}
         pagination={pagination}
@@ -616,6 +657,86 @@ export default function UserManagementTab({ onModalStateChange }) {
           userData={userModal.userData}
           onSave={handleUserSave}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <AdminModal
+          isOpen={deleteModal.isOpen}
+          onClose={closeDeleteModal}
+          title="Delete User"
+          size="md"
+          type="danger"
+        >
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-red-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-lg font-medium text-gray-900">
+                  Are you sure you want to delete this user?
+                </h4>
+                <p className="text-sm text-gray-500 mt-1">
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            {deleteModal.userData && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {deleteModal.userData.name?.charAt(0)?.toUpperCase() ||
+                        "U"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {deleteModal.userData.name || "No Name"}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {deleteModal.userData.email}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end space-x-3 mt-6">
+            <button
+              onClick={closeDeleteModal}
+              disabled={deleteModal.loading}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleUserDelete}
+              disabled={deleteModal.loading}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
+            >
+              {deleteModal.loading && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              )}
+              <span>{deleteModal.loading ? "Deleting..." : "Delete User"}</span>
+            </button>
+          </div>
+        </AdminModal>
       )}
     </div>
   );

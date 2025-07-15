@@ -179,11 +179,25 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const { name, email, role, phone, location, password } = req.body;
 
-    // Check if user exists
-    const existingUser = await db.query("SELECT id FROM users WHERE id = ?", [
+    console.log("🔧 Update user request:", {
       id,
-    ]);
-    if (existingUser.length === 0) {
+      name,
+      email,
+      role,
+      phone,
+      location,
+      hasPassword: !!password,
+    });
+
+    // Check if user exists
+    const [existingUserRows] = await db.query(
+      "SELECT id FROM users WHERE id = ?",
+      [id]
+    );
+    console.log("🔍 Existing user check:", existingUserRows);
+
+    if (existingUserRows.length === 0) {
+      console.log("❌ User not found:", id);
       return res.status(404).json({
         success: false,
         message: "User not found",
@@ -191,14 +205,26 @@ export const updateUser = async (req, res) => {
     }
 
     // Check if email is taken by another user
-    const emailCheck = await db.query(
+    const [emailCheckRows] = await db.query(
       "SELECT id FROM users WHERE email = ? AND id != ?",
       [email, id]
     );
-    if (emailCheck.length > 0) {
+    console.log("📧 Email check result:", emailCheckRows);
+
+    if (emailCheckRows.length > 0) {
+      console.log("❌ Email already taken:", email);
       return res.status(400).json({
         success: false,
         message: "Email is already taken by another user",
+      });
+    }
+
+    // Validate required fields
+    if (!name || !email) {
+      console.log("❌ Missing required fields:", { name, email });
+      return res.status(400).json({
+        success: false,
+        message: "Name and email are required",
       });
     }
 
@@ -240,24 +266,33 @@ export const updateUser = async (req, res) => {
 
     params.push(id);
 
+    console.log("🔧 Update fields:", updateFields);
+    console.log("📊 Update params:", params);
+
     const updateQuery = `UPDATE users SET ${updateFields.join(
       ", "
     )} WHERE id = ?`;
-    await db.query(updateQuery, params);
+
+    console.log("📝 Update query:", updateQuery);
+
+    const [updateResult] = await db.query(updateQuery, params);
+    console.log("✅ Update result:", updateResult);
 
     // Get updated user
-    const updatedUser = await db.query(
+    const [updatedUserRows] = await db.query(
       "SELECT id, name, email, role, phone, location, created_at FROM users WHERE id = ?",
       [id]
     );
 
+    console.log("👤 Updated user data:", updatedUserRows[0]);
+
     res.json({
       success: true,
       message: "User updated successfully",
-      data: updatedUser[0],
+      data: updatedUserRows[0],
     });
   } catch (error) {
-    console.error("Error updating user:", error);
+    console.error("❌ Error updating user:", error);
     res.status(500).json({
       success: false,
       message: "Error updating user",
