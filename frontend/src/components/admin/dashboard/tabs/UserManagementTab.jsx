@@ -4,7 +4,12 @@ import toast from "react-hot-toast";
 import UserManagementModal from "../../modals/UserManagementModal";
 import AdminModal from "../../modals/AdminModal";
 
-function UserManagementHeader({ openUserModal, onExportUsers, totalUsers }) {
+function UserManagementHeader({
+  openUserModal,
+  onExportUsers,
+  onExportUsersPDF,
+  totalUsers,
+}) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
@@ -14,25 +19,48 @@ function UserManagementHeader({ openUserModal, onExportUsers, totalUsers }) {
         </p>
       </div>
       <div className="flex gap-3">
-        <button
-          onClick={onExportUsers}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-        >
-          <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="relative">
+          <button
+            onClick={onExportUsers}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-            />
-          </svg>
-          Export Users
-        </button>
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+              />
+            </svg>
+            Export CSV
+          </button>
+        </div>
+        <div className="relative">
+          <button
+            onClick={onExportUsersPDF}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center"
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+              />
+            </svg>
+            Export PDF
+          </button>
+        </div>
         <button
           onClick={() => openUserModal("add")}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"
@@ -599,6 +627,8 @@ export default function UserManagementTab({ onModalStateChange }) {
         throw new Error("No admin token found");
       }
 
+      console.log("📤 Starting CSV export...");
+
       const response = await axios.get(`${API_URL}/admin/users/export`, {
         responseType: "blob",
         headers: {
@@ -614,10 +644,57 @@ export default function UserManagementTab({ onModalStateChange }) {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      toast.success("Users exported successfully");
+      window.URL.revokeObjectURL(url);
+      toast.success("Users exported to CSV successfully");
     } catch (err) {
-      console.error("Error exporting users:", err);
-      toast.error("Failed to export users");
+      console.error("Error exporting users to CSV:", err);
+      toast.error("Failed to export users to CSV");
+    }
+  };
+
+  const handleExportUsersPDF = async () => {
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        throw new Error("No admin token found");
+      }
+
+      console.log("📄 Starting PDF export...");
+      toast.loading("Generating PDF report...");
+
+      const response = await axios.get(`${API_URL}/admin/users/export-pdf`, {
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        timeout: 30000, // 30 second timeout for PDF generation
+      });
+
+      console.log("✅ PDF response received, size:", response.data.size);
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/pdf" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `users-report-${new Date().toISOString().split("T")[0]}.pdf`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.dismiss(); // Remove loading toast
+      toast.success("Users exported to PDF successfully");
+      console.log("📄 PDF export completed successfully");
+    } catch (err) {
+      console.error("Error exporting users to PDF:", err);
+      toast.dismiss(); // Remove loading toast
+      toast.error("Failed to export users to PDF");
     }
   };
 
@@ -627,6 +704,7 @@ export default function UserManagementTab({ onModalStateChange }) {
       <UserManagementHeader
         openUserModal={openUserModal}
         onExportUsers={handleExportUsers}
+        onExportUsersPDF={handleExportUsersPDF}
         totalUsers={pagination.total}
       />
 

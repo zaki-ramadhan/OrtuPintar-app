@@ -1,5 +1,6 @@
 import { db } from "../config/db.js";
 import bcrypt from "bcrypt";
+import PDFDocument from "pdfkit";
 
 // Get all users with pagination and filtering
 export const getAllUsers = async (req, res) => {
@@ -392,7 +393,9 @@ export const deleteUser = async (req, res) => {
 // Export users to CSV
 export const exportUsers = async (req, res) => {
   try {
-    const users = await db.query(`
+    console.log("📊 Starting CSV export for users...");
+
+    const [users] = await db.query(`
       SELECT 
         id, 
         name, 
@@ -405,6 +408,9 @@ export const exportUsers = async (req, res) => {
       FROM users 
       ORDER BY created_at DESC
     `);
+
+    console.log(`📊 Found ${users.length} users for CSV export`);
+    console.log("🔍 All users data for CSV:", users);
 
     // Convert to CSV
     const csvHeader =
@@ -429,6 +435,435 @@ export const exportUsers = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error exporting users",
+      error: error.message,
+    });
+  }
+};
+
+// Export users to PDF
+export const exportUsersPDF = async (req, res) => {
+  try {
+    console.log("📋 Starting PDF export for users...");
+
+    // Fetch users data with complete information - using same query as getAllUsers
+    const [users] = await db.query(`
+      SELECT 
+        id, 
+        name, 
+        email, 
+        role, 
+        created_at,
+        phone,
+        location,
+        (SELECT COUNT(*) FROM children WHERE user_id = users.id) as children_count
+      FROM users 
+      ORDER BY created_at DESC
+    `);
+
+    console.log(`📊 Found ${users.length} users for PDF export`);
+    console.log("🔍 All users data for PDF:", users);
+
+    // Use all users for export - no filtering needed
+    const safeUsers = users.map((user) => ({
+      id: user.id || 0,
+      name: user.name || "Unknown",
+      email: user.email || "No email",
+      role: user.role || "users",
+      created_at: user.created_at || new Date(),
+      phone: user.phone || "",
+      location: user.location || "",
+      children_count: user.children_count || 0,
+    }));
+
+    console.log("✅ Safe users data prepared:", safeUsers.length);
+
+    // Set response headers first
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=users-report.pdf"
+    );
+
+    // Create PDF document
+    const doc = new PDFDocument({ margin: 50, size: "A4" });
+
+    // Pipe PDF to response immediately
+    doc.pipe(res);
+
+    // Add header
+    doc
+      .fontSize(20)
+      .fillColor("#2563eb")
+      .text("OrtuPintar - Users Report", { align: "center" });
+
+    doc.moveDown();
+    doc
+      .fontSize(12)
+      .fillColor("#666666")
+      .text(
+        `Generated on: ${new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`,
+        { align: "center" }
+      );
+
+    doc.moveDown();
+    doc.text(`Total Users: ${safeUsers.length}`, { align: "center" });
+
+    doc.moveDown(2);
+
+    // Add summary stats
+    const adminCount = safeUsers.filter((u) => u.role === "admin").length;
+    const regularUserCount = safeUsers.filter((u) => u.role === "users").length;
+    const totalChildren = safeUsers.reduce(
+      (sum, u) => sum + (parseInt(u.children_count) || 0),
+      0
+    );
+
+    doc
+      .fontSize(14)
+      .fillColor("#1f2937")
+      .text("Summary Statistics", { underline: true });
+
+    doc.moveDown(0.5);
+    doc
+      .fontSize(12)
+      .text(`• Total Users: ${safeUsers.length}`)
+      .text(`• Admin Users: ${adminCount}`)
+      .text(`• Regular Users: ${regularUserCount}`)
+      .text(`• Total Children: ${totalChildren}`)
+      .text(
+        `• Average Children per User: ${
+          users.length > 0 ? (totalChildren / users.length).toFixed(1) : 0
+        }`
+      );
+
+    doc.moveDown(2);
+
+    // Table header
+    doc
+      .fontSize(14)
+      .fillColor("#1f2937")
+      .text("User Details", { underline: true });
+
+    doc.moveDown();
+
+    // Table setup
+    const tableTop = doc.y;
+    const itemHeight = 25;
+    let currentY = tableTop;
+
+    // Draw table header
+    doc.fontSize(10).fillColor("#374151").font("Helvetica-Bold");
+
+    const colWidths = {
+      id: 30,
+      name: 100,
+      email: 120,
+      role: 50,
+      phone: 80,
+      location: 80,
+      children: 40,
+      date: 80,
+    };
+
+    let currentX = 50;
+    doc.text("ID", currentX, currentY, { width: colWidths.id, align: "left" });
+    currentX += colWidths.id;
+    doc.text("Name", currentX, currentY, {
+      width: colWidths.name,
+      align: "left",
+    });
+    currentX += colWidths.name;
+    doc.text("Email", currentX, currentY, {
+      width: colWidths.email,
+      align: "left",
+    });
+    currentX += colWidths.email;
+    doc.text("Role", currentX, currentY, {
+      width: colWidths.role,
+      align: "left",
+    });
+    currentX += colWidths.role;
+    doc.text("Phone", currentX, currentY, {
+      width: colWidths.phone,
+      align: "left",
+    });
+    currentX += colWidths.phone;
+    doc.text("Location", currentX, currentY, {
+      width: colWidths.location,
+      align: "left",
+    });
+    currentX += colWidths.location;
+    doc.text("Children", currentX, currentY, {
+      width: colWidths.children,
+      align: "center",
+    });
+    currentX += colWidths.children;
+    doc.text("Joined", currentX, currentY, {
+      width: colWidths.date,
+      align: "left",
+    });
+
+    // Draw header line
+    currentY += 15;
+    doc.moveTo(50, currentY).lineTo(550, currentY).stroke();
+
+    currentY += 10;
+
+    // Draw table rows
+    doc.font("Helvetica").fontSize(9);
+
+    safeUsers.forEach((user, index) => {
+      // Check if we need a new page
+      if (currentY > 700) {
+        doc.addPage();
+        currentY = 50;
+
+        // Redraw header on new page
+        doc.fontSize(10).fillColor("#374151").font("Helvetica-Bold");
+
+        let headerX = 50;
+        doc.text("ID", headerX, currentY, {
+          width: colWidths.id,
+          align: "left",
+        });
+        headerX += colWidths.id;
+        doc.text("Name", headerX, currentY, {
+          width: colWidths.name,
+          align: "left",
+        });
+        headerX += colWidths.name;
+        doc.text("Email", headerX, currentY, {
+          width: colWidths.email,
+          align: "left",
+        });
+        headerX += colWidths.email;
+        doc.text("Role", headerX, currentY, {
+          width: colWidths.role,
+          align: "left",
+        });
+        headerX += colWidths.role;
+        doc.text("Phone", headerX, currentY, {
+          width: colWidths.phone,
+          align: "left",
+        });
+        headerX += colWidths.phone;
+        doc.text("Location", headerX, currentY, {
+          width: colWidths.location,
+          align: "left",
+        });
+        headerX += colWidths.location;
+        doc.text("Children", headerX, currentY, {
+          width: colWidths.children,
+          align: "center",
+        });
+        headerX += colWidths.children;
+        doc.text("Joined", headerX, currentY, {
+          width: colWidths.date,
+          align: "left",
+        });
+
+        currentY += 15;
+        doc.moveTo(50, currentY).lineTo(550, currentY).stroke();
+        currentY += 10;
+
+        doc.font("Helvetica").fontSize(9);
+      }
+
+      // Alternate row colors
+      if (index % 2 === 0) {
+        doc
+          .rect(50, currentY - 2, 500, itemHeight - 5)
+          .fillAndStroke("#f9fafb", "#f9fafb");
+      }
+
+      doc.fillColor("#374151");
+
+      let rowX = 50;
+
+      // Safely handle user.id
+      const userId = user.id ? String(user.id) : "N/A";
+      doc.text(userId, rowX, currentY, {
+        width: colWidths.id,
+        align: "left",
+      });
+      rowX += colWidths.id;
+
+      // Safely handle user.name
+      const userName = user.name ? String(user.name) : "N/A";
+      doc.text(userName, rowX, currentY, {
+        width: colWidths.name,
+        align: "left",
+        ellipsis: true,
+      });
+      rowX += colWidths.name;
+
+      // Safely handle user.email
+      const userEmail = user.email ? String(user.email) : "N/A";
+      doc.text(userEmail, rowX, currentY, {
+        width: colWidths.email,
+        align: "left",
+        ellipsis: true,
+      });
+      rowX += colWidths.email;
+
+      // Safely handle user.role
+      const userRole = user.role === "admin" ? "Admin" : "User";
+      doc.text(userRole, rowX, currentY, {
+        width: colWidths.role,
+        align: "left",
+      });
+      rowX += colWidths.role;
+
+      // Safely handle user.phone
+      const userPhone = user.phone ? String(user.phone) : "-";
+      doc.text(userPhone, rowX, currentY, {
+        width: colWidths.phone,
+        align: "left",
+        ellipsis: true,
+      });
+      rowX += colWidths.phone;
+
+      // Safely handle user.location
+      const userLocation = user.location ? String(user.location) : "-";
+      doc.text(userLocation, rowX, currentY, {
+        width: colWidths.location,
+        align: "left",
+        ellipsis: true,
+      });
+      rowX += colWidths.location;
+
+      // Safely handle children_count
+      const childrenCount = user.children_count
+        ? String(user.children_count)
+        : "0";
+      doc.text(childrenCount, rowX, currentY, {
+        width: colWidths.children,
+        align: "center",
+      });
+      rowX += colWidths.children;
+
+      // Safely handle created_at
+      let joinDate = "N/A";
+      if (user.created_at) {
+        try {
+          joinDate = new Date(user.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "2-digit",
+          });
+        } catch (e) {
+          joinDate = "Invalid Date";
+        }
+      }
+      doc.text(joinDate, rowX, currentY, {
+        width: colWidths.date,
+        align: "left",
+      });
+
+      currentY += itemHeight;
+    });
+
+    // Add footer
+    doc.moveDown(2);
+    doc
+      .fontSize(8)
+      .fillColor("#9ca3af")
+      .text(
+        `Report generated by OrtuPintar Admin Dashboard • ${new Date().toLocaleDateString()}`,
+        50,
+        doc.page.height - 50,
+        { align: "center" }
+      );
+
+    // Finalize PDF
+    doc.end();
+
+    console.log("✅ PDF export completed successfully");
+  } catch (error) {
+    console.error("Error exporting users to PDF:", error);
+
+    // If headers haven't been sent yet, send error response
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: "Error exporting users to PDF",
+        error: error.message,
+      });
+    }
+  }
+};
+
+// Export users to PDF
+export const exportUsersToPDF = async (req, res) => {
+  try {
+    const users = await db.query(`
+      SELECT 
+        id, 
+        name, 
+        email, 
+        role, 
+        phone,
+        location,
+        created_at,
+        (SELECT COUNT(*) FROM children WHERE user_id = users.id) as children_count
+      FROM users 
+      ORDER BY created_at DESC
+    `);
+
+    // Create a document
+    const doc = new PDFDocument();
+    let filename = "users.pdf";
+    // Set response headers
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+    // Pipe the PDF into the response
+    doc.pipe(res);
+
+    // Add document content
+    doc.fontSize(20).text("Users Report", { align: "center" });
+    doc.moveDown();
+
+    // Table header
+    doc
+      .fontSize(12)
+      .text(
+        "ID\tName\tEmail\tRole\tPhone\tLocation\tChildren Count\tRegistration Date",
+        {
+          align: "left",
+          width: 500,
+        }
+      );
+    doc.moveDown(0.5);
+
+    // Table rows
+    users.forEach((user) => {
+      doc.text(
+        `${user.id}\t${user.name}\t${user.email}\t${user.role}\t${
+          user.phone || ""
+        }\t${user.location || ""}\t${user.children_count}\t${new Date(
+          user.created_at
+        ).toLocaleDateString()}`,
+        {
+          align: "left",
+          width: 500,
+        }
+      );
+    });
+
+    // Finalize the PDF and end the response
+    doc.end();
+  } catch (error) {
+    console.error("Error exporting users to PDF:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error exporting users to PDF",
       error: error.message,
     });
   }
