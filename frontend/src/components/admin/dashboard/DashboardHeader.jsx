@@ -109,12 +109,17 @@ export default function DashboardHeader({
   setNotificationOpen,
   notifications,
   onReadNotifications,
+  isModalOpen = false, // New prop to control blur effect
 }) {
   const handleLogout = () => {
     setLogoutModal(true);
   };
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <header
+      className={`bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 transition-all duration-300 ${
+        isModalOpen ? "opacity-75" : ""
+      }`}
+    >
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 sm:h-16">
           {/* Mobile Menu Button */}

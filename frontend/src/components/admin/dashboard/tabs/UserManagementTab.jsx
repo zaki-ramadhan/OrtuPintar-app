@@ -341,7 +341,7 @@ function UsersTable({
   );
 }
 
-export default function UserManagementTab() {
+export default function UserManagementTab({ onModalStateChange }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -438,6 +438,13 @@ export default function UserManagementTab() {
   useEffect(() => {
     fetchUsers();
   }, [pagination.page, filters]);
+
+  // Report modal state change to parent
+  useEffect(() => {
+    if (onModalStateChange) {
+      onModalStateChange(userModal.isOpen);
+    }
+  }, [userModal.isOpen, onModalStateChange]);
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {

@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false); // Track UserManagement modal state
   const [notifications, setNotifications] = useState([
     {
       message: "New user registered: Sarah Johnson",
@@ -119,6 +120,11 @@ export default function DashboardPage() {
     );
   };
 
+  // Handle UserManagement modal state change
+  const handleUserModalStateChange = (isOpen) => {
+    setIsUserModalOpen(isOpen);
+  };
+
   // CRUD operations
   const handleUserSave = async (userData) => {
     console.log("Saving user:", userData);
@@ -160,6 +166,7 @@ export default function DashboardPage() {
         setNotificationOpen={setNotificationOpen}
         notifications={notifications}
         onReadNotifications={onReadNotifications}
+        isModalOpen={isUserModalOpen}
       />
       {/* Navigation Tabs */}
       <NavigationTabs
@@ -167,9 +174,16 @@ export default function DashboardPage() {
         setActiveTab={setActiveTab}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        className={`transition-all duration-300 ${
+          isUserModalOpen ? "opacity-75" : ""
+        }`}
       />
       {/* Main Content */}
-      <main className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 relative z-10">
+      <main
+        className={`px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 relative z-10 transition-all duration-300 ${
+          isUserModalOpen ? "opacity-75" : ""
+        }`}
+      >
         {activeTab === "overview" && (
           <OverviewTab
             getStatusColor={getStatusColor}
@@ -183,6 +197,7 @@ export default function DashboardPage() {
             getStatusColor={getStatusColor}
             openUserModal={openUserModal}
             openConfirmModal={openConfirmModal}
+            onModalStateChange={handleUserModalStateChange}
           />
         )}{" "}
         {/* Content Management Tab */}
