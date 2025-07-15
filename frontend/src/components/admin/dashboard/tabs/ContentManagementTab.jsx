@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import ActivityModal from "../../modals/ActivityModal";
+import ConfirmationModal from "../../modals/ConfirmationModal";
 
 function ContentManagementHeader({ openContentModal, stats, onRefresh }) {
   const [isExporting, setIsExporting] = useState(false);
@@ -251,7 +253,12 @@ function ContentStats({ stats, loading }) {
   );
 }
 
-function ContentFilters({ filters, onFilterChange, onSearch }) {
+function ContentFilters({
+  filters,
+  onFilterChange,
+  onSearch,
+  categories = [],
+}) {
   const handleSearchChange = (e) => {
     onSearch(e.target.value);
   };
@@ -299,11 +306,11 @@ function ContentFilters({ filters, onFilterChange, onSearch }) {
             onChange={(e) => handleFilterChange("category", e.target.value)}
           >
             <option value="">All Categories</option>
-            <option value="motorik">Motorik</option>
-            <option value="kognitif">Kognitif</option>
-            <option value="sosial-emosional">Sosial Emosional</option>
-            <option value="bahasa">Bahasa</option>
-            <option value="seni-kreativitas">Seni & Kreativitas</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </option>
+            ))}
           </select>
         </div>
         <div>
@@ -662,6 +669,7 @@ export default function ContentManagementTab({
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({
     search: "",
     category: "",
@@ -675,9 +683,43 @@ export default function ContentManagementTab({
     totalPages: 0,
   });
 
+  // Modal states
+  const [activityModal, setActivityModal] = useState({
+    isOpen: false,
+    mode: "view",
+    activity: null,
+  });
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    type: "",
+    activity: null,
+  });
+
   // Get auth token
   const getAuthToken = () => {
     return localStorage.getItem("adminToken");
+  };
+
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    try {
+      const token = getAuthToken();
+      const response = await axios.get(
+        "http://localhost:3000/api/admin/activities/categories",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setCategories(response.data.data);
+        console.log("📋 Categories loaded:", response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
   };
 
   // Fetch activities from API
@@ -769,6 +811,103 @@ export default function ContentManagementTab({
     fetchStats();
   };
 
+  // Modal handlers
+  const openActivityModal = (mode, activity = null) => {
+    setActivityModal({
+      isOpen: true,
+      mode,
+      activity,
+    });
+  };
+
+  const closeActivityModal = () => {
+    setActivityModal({
+      isOpen: false,
+      mode: "view",
+      activity: null,
+    });
+  };
+
+  const openActivityConfirmModal = (type, activity) => {
+    setConfirmModal({
+      isOpen: true,
+      type,
+      activity,
+    });
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmModal({
+      isOpen: false,
+      type: "",
+      activity: null,
+    });
+  };
+
+  // Handle activity save (create/update)
+  const handleActivitySave = async (formData) => {
+    try {
+      const token = getAuthToken();
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+
+      if (activityModal.mode === "add") {
+        // Create new activity
+        await axios.post(
+          "http://localhost:3000/api/admin/activities",
+          formData,
+          { headers }
+        );
+      } else if (activityModal.mode === "edit") {
+        // Update existing activity
+        await axios.put(
+          `http://localhost:3000/api/admin/activities/${activityModal.activity.id}`,
+          formData,
+          { headers }
+        );
+      }
+
+      // Refresh data
+      await fetchActivities();
+      await fetchStats();
+    } catch (error) {
+      console.error("Error saving activity:", error);
+      throw error;
+    }
+  };
+
+  // Handle activity delete
+  const handleActivityDelete = async (activityId) => {
+    try {
+      const token = getAuthToken();
+      await axios.delete(
+        `http://localhost:3000/api/admin/activities/${activityId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Refresh data
+      await fetchActivities();
+      await fetchStats();
+    } catch (error) {
+      console.error("Error deleting activity:", error);
+      throw error;
+    }
+  };
+
+  // Handle confirm modal actions
+  const handleConfirmAction = async () => {
+    if (confirmModal.type === "delete") {
+      await handleActivityDelete(confirmModal.activity.id);
+      closeConfirmModal();
+    }
+  };
+
   // Load data on component mount and filter changes
   useEffect(() => {
     fetchActivities();
@@ -776,13 +915,14 @@ export default function ContentManagementTab({
 
   useEffect(() => {
     fetchStats();
+    fetchCategories();
   }, []);
 
   return (
     <div className="space-y-6">
       {/* Content Management Header */}
       <ContentManagementHeader
-        openContentModal={openContentModal}
+        openContentModal={openActivityModal}
         stats={stats}
         onRefresh={handleRefresh}
       />
@@ -795,14 +935,15 @@ export default function ContentManagementTab({
         filters={filters}
         onFilterChange={handleFilterChange}
         onSearch={handleSearch}
+        categories={categories}
       />
 
       {/* Content List */}
       <ContentList
         activities={activities}
         loading={loading}
-        openContentModal={openContentModal}
-        openConfirmModal={openConfirmModal}
+        openContentModal={openActivityModal}
+        openConfirmModal={openActivityConfirmModal}
       />
 
       {/* Pagination */}
@@ -810,6 +951,27 @@ export default function ContentManagementTab({
         currentPage={pagination.page}
         totalPages={pagination.totalPages}
         onPageChange={handlePageChange}
+      />
+
+      {/* Activity Modal */}
+      <ActivityModal
+        isOpen={activityModal.isOpen}
+        onClose={closeActivityModal}
+        activity={activityModal.activity}
+        mode={activityModal.mode}
+        onSave={handleActivitySave}
+        onDelete={handleActivityDelete}
+      />
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={handleConfirmAction}
+        title="Delete Activity"
+        message={`Are you sure you want to delete "${confirmModal.activity?.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        type="danger"
       />
     </div>
   );

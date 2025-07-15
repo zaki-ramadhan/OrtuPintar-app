@@ -546,7 +546,7 @@ export const createActivity = async (req, res) => {
       category,
       difficulty = "easy",
       duration = "15-30 minutes",
-      age_group = "1-2 tahun",
+      age_group = "1-2 years",
       age_group_min = 12,
       age_group_max = 24,
       icon = "🎯",
@@ -850,6 +850,88 @@ export const getActivityStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error getting activity statistics",
+      error: error.message,
+    });
+  }
+};
+
+// Get activity categories from database enum
+export const getActivityCategories = async (req, res) => {
+  try {
+    // Query to get enum values from activities table category column
+    const [rows] = await db.query(`
+      SHOW COLUMNS FROM activities LIKE 'category'
+    `);
+
+    if (rows && rows.length > 0) {
+      // Extract enum values from the Type field
+      const enumType = rows[0].Type;
+      const enumMatch = enumType.match(/enum\((.*)\)/i);
+
+      if (enumMatch) {
+        // Parse enum values and clean them
+        const enumValues = enumMatch[1]
+          .split(",")
+          .map((value) => value.replace(/'/g, "").trim());
+
+        console.log("📋 Activity categories from database:", enumValues);
+
+        res.json({
+          success: true,
+          data: enumValues,
+        });
+      } else {
+        throw new Error("Could not parse enum values");
+      }
+    } else {
+      throw new Error("Category column not found");
+    }
+  } catch (error) {
+    console.error("❌ Error fetching activity categories:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching activity categories",
+      error: error.message,
+    });
+  }
+};
+
+// Get activity difficulties from database enum
+export const getActivityDifficulties = async (req, res) => {
+  try {
+    // Query to get enum values from activities table difficulty column
+    const [rows] = await db.query(`
+      SHOW COLUMNS FROM activities LIKE 'difficulty'
+    `);
+
+    if (rows && rows.length > 0) {
+      // Extract enum values from the Type field
+      const enumType = rows[0].Type;
+      const enumMatch = enumType.match(/enum\((.*)\)/i);
+
+      if (enumMatch) {
+        // Parse enum values and clean them
+        const enumValues = enumMatch[1]
+          .split(",")
+          .map((value) => value.replace(/'/g, "").trim());
+
+        console.log("📋 Activity difficulties from database:", enumValues);
+
+        res.json({
+          success: true,
+          data: enumValues,
+        });
+      } else {
+        throw new Error("Could not parse enum values");
+      }
+    } else {
+      throw new Error("Difficulty column not found");
+    }
+  } catch (error) {
+    console.error("❌ Error fetching activity difficulties:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching activity difficulties",
       error: error.message,
     });
   }

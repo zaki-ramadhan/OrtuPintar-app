@@ -439,11 +439,9 @@ export default function HomePage() {
     if (years === 0) {
       return `${months} month${months > 1 ? "s" : ""}`;
     } else if (months === 0) {
-      return `${years} year${years > 1 ? "s" : ""}`;
+      return `${years} years`;
     } else {
-      return `${years} year${years > 1 ? "s" : ""}, ${months} month${
-        months > 1 ? "s" : ""
-      }`;
+      return `${years} years, ${months} month${months > 1 ? "s" : ""}`;
     }
   }
 
@@ -769,7 +767,7 @@ export default function HomePage() {
             {filteredActivities.length === 0 && childAgeInYears === 0 && (
               <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-xl p-4 mt-2 text-center">
                 Currently there are no activity suggestions for children under 1
-                year old. Please consult with experts or check baby development
+                years old. Please consult with experts or check baby development
                 milestones.
               </div>
             )}

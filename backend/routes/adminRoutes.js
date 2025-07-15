@@ -32,5 +32,7 @@ router.post("/activities", adminController.createActivity);
 router.put("/activities/:id", adminController.updateActivity);
 router.delete("/activities/:id", adminController.deleteActivity);
 router.get("/activities/stats", adminController.getActivityStats);
+router.get("/activities/categories", adminController.getActivityCategories);
+router.get("/activities/difficulties", adminController.getActivityDifficulties);
 
 export default router;
