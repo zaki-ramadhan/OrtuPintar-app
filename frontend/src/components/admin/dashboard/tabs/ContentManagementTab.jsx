@@ -9,13 +9,87 @@ function ContentManagementHeader({ openContentModal, stats, onRefresh }) {
   const [isExporting, setIsExporting] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
 
-  const handleExport = async () => {
+  const handleExportCSV = async () => {
     setIsExporting(true);
     try {
-      // TODO: Implement export functionality
-      setTimeout(() => setIsExporting(false), 1000);
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        throw new Error("No admin token found");
+      }
+
+      console.log("📤 Starting activities CSV export...");
+
+      const response = await axios.get(`${API_URL}/admin/activities/export`, {
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "activities.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      console.log("✅ Activities CSV export completed");
     } catch (error) {
-      console.error("Export error:", error);
+      console.error("Export CSV error:", error);
+      alert("Failed to export activities to CSV");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        throw new Error("No admin token found");
+      }
+
+      console.log("📄 Starting activities PDF export...");
+
+      const response = await axios.get(
+        `${API_URL}/admin/activities/export-pdf`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: 30000, // 30 second timeout for PDF generation
+        }
+      );
+
+      console.log("✅ PDF response received, size:", response.data.size);
+
+      // Create blob link to download
+      const url = window.URL.createObjectURL(
+        new Blob([response.data], { type: "application/pdf" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute(
+        "download",
+        `activities-report-${new Date().toISOString().split("T")[0]}.pdf`
+      );
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      console.log("📄 Activities PDF export completed successfully");
+    } catch (error) {
+      console.error("Export PDF error:", error);
+      alert("Failed to export activities to PDF");
+    } finally {
       setIsExporting(false);
     }
   };
@@ -98,26 +172,50 @@ function ContentManagementHeader({ openContentModal, stats, onRefresh }) {
           </svg>
           {isMigrating ? "Migrating..." : "Fix Age Format"}
         </button>
-        <button
-          onClick={handleExport}
-          disabled={isExporting}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
-        >
-          <svg
-            className="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="relative">
+          <button
+            onClick={handleExportCSV}
+            disabled={isExporting}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center disabled:opacity-50"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-            />
-          </svg>
-          {isExporting ? "Exporting..." : "Export"}
-        </button>
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+              />
+            </svg>
+            {isExporting ? "Exporting..." : "Export CSV"}
+          </button>
+        </div>
+        <div className="relative">
+          <button
+            onClick={handleExportPDF}
+            disabled={isExporting}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center disabled:opacity-50"
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+              />
+            </svg>
+            {isExporting ? "Exporting..." : "Export PDF"}
+          </button>
+        </div>
         <button
           onClick={() => openContentModal("add")}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center"

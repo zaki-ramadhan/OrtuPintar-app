@@ -1438,3 +1438,249 @@ export const migrateAgeGroupFormat = async (req, res) => {
     });
   }
 };
+
+// Export activities to CSV
+export const exportActivities = async (req, res) => {
+  try {
+    console.log("📊 Starting CSV export for activities...");
+
+    const [activities] = await db.query(`
+      SELECT 
+        id,
+        title,
+        description,
+        category,
+        difficulty,
+        duration,
+        age_group,
+        age_group_min,
+        age_group_max,
+        icon,
+        isMilestone,
+        created_at,
+        (SELECT COUNT(*) FROM child_activities WHERE activity_id = activities.id) as usage_count
+      FROM activities 
+      ORDER BY created_at DESC
+    `);
+
+    console.log(`📊 Found ${activities.length} activities for CSV export`);
+    console.log("🔍 All activities data for CSV:", activities);
+
+    // Convert to CSV
+    const csvHeader =
+      "ID,Title,Description,Category,Difficulty,Duration,Age Group,Min Age,Max Age,Icon,Is Milestone,Usage Count,Created Date\n";
+    const csvData = activities
+      .map((activity) => {
+        return `${activity.id},"${
+          activity.title
+        }","${activity.description.replace(/"/g, '""')}","${
+          activity.category
+        }","${activity.difficulty}","${activity.duration}","${
+          activity.age_group
+        }",${activity.age_group_min},${activity.age_group_max},"${
+          activity.icon
+        }","${activity.isMilestone ? "Yes" : "No"}",${
+          activity.usage_count
+        },"${new Date(activity.created_at).toLocaleDateString()}"`;
+      })
+      .join("\n");
+
+    const csv = csvHeader + csvData;
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", "attachment; filename=activities.csv");
+    res.send(csv);
+  } catch (error) {
+    console.error("Error exporting activities:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error exporting activities",
+      error: error.message,
+    });
+  }
+};
+
+// Export activities to PDF
+export const exportActivitiesPDF = async (req, res) => {
+  try {
+    console.log("📋 Starting PDF export for activities...");
+
+    // Fetch activities data with complete information
+    const [activities] = await db.query(`
+      SELECT 
+        id,
+        title,
+        description,
+        category,
+        difficulty,
+        duration,
+        age_group,
+        age_group_min,
+        age_group_max,
+        icon,
+        isMilestone,
+        created_at,
+        (SELECT COUNT(*) FROM child_activities WHERE activity_id = activities.id) as usage_count
+      FROM activities 
+      ORDER BY created_at DESC
+    `);
+
+    console.log(`📊 Found ${activities.length} activities for PDF export`);
+    console.log("🔍 All activities data for PDF:", activities);
+
+    // Use all activities for export - no filtering needed
+    const safeActivities = activities.map((activity) => ({
+      id: activity.id || 0,
+      title: activity.title || "Untitled",
+      description: activity.description || "No description",
+      category: activity.category || "uncategorized",
+      difficulty: activity.difficulty || "easy",
+      duration: activity.duration || "Unknown",
+      age_group: activity.age_group || "All ages",
+      icon: activity.icon || "🎯",
+      isMilestone: activity.isMilestone || 0,
+      usage_count: activity.usage_count || 0,
+      created_at: activity.created_at || new Date(),
+    }));
+
+    console.log("✅ Safe activities data prepared:", safeActivities.length);
+
+    // Set response headers first
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=activities-report.pdf"
+    );
+
+    // Create PDF document
+    const doc = new PDFDocument({
+      margin: 50,
+      size: "A4",
+    });
+
+    // Pipe to response
+    doc.pipe(res);
+
+    // Header
+    doc.fontSize(20).text("OrtuPintar - Activities Report", 50, 50);
+    doc
+      .fontSize(12)
+      .text(`Generated on: ${new Date().toLocaleDateString()}`, 50, 80);
+    doc.text(`Total Activities: ${safeActivities.length}`, 50, 100);
+
+    // Statistics Summary
+    const milestoneCount = safeActivities.filter(
+      (a) => a.isMilestone === 1
+    ).length;
+    const totalUsage = safeActivities.reduce(
+      (sum, a) => sum + a.usage_count,
+      0
+    );
+    const categories = [...new Set(safeActivities.map((a) => a.category))];
+
+    doc.fontSize(14).text("Summary Statistics:", 50, 130);
+    doc
+      .fontSize(10)
+      .text(`• Total Activities: ${safeActivities.length}`, 70, 150)
+      .text(`• Milestone Activities: ${milestoneCount}`, 70, 165)
+      .text(
+        `• Regular Activities: ${safeActivities.length - milestoneCount}`,
+        70,
+        180
+      )
+      .text(`• Total Usage Count: ${totalUsage}`, 70, 195)
+      .text(
+        `• Categories: ${categories.length} (${categories.join(", ")})`,
+        70,
+        210
+      );
+
+    // Table header
+    let yPosition = 250;
+    doc.fontSize(8);
+
+    // Check if we need a new page
+    if (yPosition > 750) {
+      doc.addPage();
+      yPosition = 50;
+    }
+
+    // Table headers
+    doc.rect(50, yPosition, 500, 20).stroke();
+    doc.text("ID", 55, yPosition + 5, { width: 30 });
+    doc.text("Title", 90, yPosition + 5, { width: 120 });
+    doc.text("Category", 215, yPosition + 5, { width: 60 });
+    doc.text("Difficulty", 280, yPosition + 5, { width: 50 });
+    doc.text("Age Group", 335, yPosition + 5, { width: 60 });
+    doc.text("Milestone", 400, yPosition + 5, { width: 50 });
+    doc.text("Usage", 455, yPosition + 5, { width: 40 });
+    doc.text("Created", 500, yPosition + 5, { width: 50 });
+
+    yPosition += 20;
+
+    // Table data
+    safeActivities.forEach((activity) => {
+      // Check if we need a new page
+      if (yPosition > 750) {
+        doc.addPage();
+        yPosition = 50;
+
+        // Re-draw headers on new page
+        doc.rect(50, yPosition, 500, 20).stroke();
+        doc.text("ID", 55, yPosition + 5, { width: 30 });
+        doc.text("Title", 90, yPosition + 5, { width: 120 });
+        doc.text("Category", 215, yPosition + 5, { width: 60 });
+        doc.text("Difficulty", 280, yPosition + 5, { width: 50 });
+        doc.text("Age Group", 335, yPosition + 5, { width: 60 });
+        doc.text("Milestone", 400, yPosition + 5, { width: 50 });
+        doc.text("Usage", 455, yPosition + 5, { width: 40 });
+        doc.text("Created", 500, yPosition + 5, { width: 50 });
+        yPosition += 20;
+      }
+
+      doc.rect(50, yPosition, 500, 15).stroke();
+      doc.text(activity.id.toString(), 55, yPosition + 2, { width: 30 });
+      doc.text(activity.title.substring(0, 20), 90, yPosition + 2, {
+        width: 120,
+      });
+      doc.text(activity.category, 215, yPosition + 2, { width: 60 });
+      doc.text(activity.difficulty, 280, yPosition + 2, { width: 50 });
+      doc.text(activity.age_group, 335, yPosition + 2, { width: 60 });
+      doc.text(activity.isMilestone ? "Yes" : "No", 400, yPosition + 2, {
+        width: 50,
+      });
+      doc.text(activity.usage_count.toString(), 455, yPosition + 2, {
+        width: 40,
+      });
+      doc.text(
+        new Date(activity.created_at).toLocaleDateString(),
+        500,
+        yPosition + 2,
+        { width: 50 }
+      );
+
+      yPosition += 15;
+    });
+
+    // Footer
+    const footerY = yPosition + 30;
+    doc
+      .fontSize(8)
+      .text(
+        `Report generated by OrtuPintar Admin System - ${new Date().toLocaleString()}`,
+        50,
+        footerY,
+        { align: "center" }
+      );
+
+    // Finalize the PDF and end the response
+    doc.end();
+  } catch (error) {
+    console.error("Error exporting activities to PDF:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error exporting activities to PDF",
+      error: error.message,
+    });
+  }
+};
