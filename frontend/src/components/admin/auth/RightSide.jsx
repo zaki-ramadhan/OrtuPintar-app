@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
+import axios from "axios";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function RightSide() {
   const [email, setEmail] = useState("");
@@ -24,40 +25,37 @@ export default function RightSide() {
     try {
       console.log("🔐 Attempting admin login with:", { email });
 
-      const response = await fetch(`${API_URL}/auth/admin/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+      const response = await axios.post(`${API_URL}/auth/admin/login`, {
+        email,
+        password,
       });
 
-      const data = await response.json();
+      const data = response.data;
       console.log("🔍 Login response:", data);
 
-      if (response.ok) {
-        // Store admin data and token
-        localStorage.setItem("admin", JSON.stringify(data.user));
-        localStorage.setItem("adminToken", data.token);
+      // Store admin data and token
+      localStorage.setItem("admin", JSON.stringify(data.user));
+      localStorage.setItem("adminToken", data.token);
 
-        if (rememberMe) {
-          localStorage.setItem("adminRememberMe", "true");
-        }
-
-        toast.success(data.message || "Login successful! Welcome back, Admin.");
-
-        setTimeout(() => {
-          navigate("/back/dashboard");
-        }, 1500);
-      } else {
-        toast.error(data.message || "Invalid credentials. Please try again.");
+      if (rememberMe) {
+        localStorage.setItem("adminRememberMe", "true");
       }
+
+      toast.success(data.message || "Login successful! Welcome back, Admin.");
+
+      setTimeout(() => {
+        navigate("/admin/dashboard");
+      }, 1500);
     } catch (error) {
       console.error("Login failed:", error);
-      toast.error("Network error. Please try again.");
+      if (error.response) {
+        toast.error(
+          error.response.data.message ||
+            "Invalid credentials. Please try again."
+        );
+      } else {
+        toast.error("Network error. Please try again.");
+      }
     } finally {
       setTimeout(() => setLoading(false), 2000);
     }
