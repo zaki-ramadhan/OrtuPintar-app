@@ -433,3 +433,424 @@ export const exportUsers = async (req, res) => {
     });
   }
 };
+
+// ==================== ACTIVITIES MANAGEMENT ====================
+
+// Get all activities with pagination and filtering
+export const getAllActivitiesAdmin = async (req, res) => {
+  try {
+    // Disable caching
+    res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      category = "",
+      status = "",
+      sortBy = "created_at",
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+
+    // Build WHERE conditions
+    let whereConditions = [];
+    let params = [];
+
+    if (search) {
+      whereConditions.push("(title LIKE ? OR description LIKE ?)");
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    if (category) {
+      whereConditions.push("category = ?");
+      params.push(category);
+    }
+
+    const whereClause =
+      whereConditions.length > 0
+        ? `WHERE ${whereConditions.join(" AND ")}`
+        : "";
+
+    console.log("🔍 Activities query parameters:", {
+      page,
+      limit,
+      search,
+      category,
+      status,
+      sortBy,
+    });
+
+    // Get total count
+    const countQuery = `SELECT COUNT(*) as total FROM activities ${whereClause}`;
+    const [countResult] = await db.query(countQuery, params);
+    const total = countResult[0].total;
+
+    console.log("📈 Total activities found:", total);
+
+    // Get activities with pagination
+    const activitiesQuery = `
+      SELECT 
+        id, 
+        title, 
+        description, 
+        category, 
+        difficulty, 
+        duration,
+        age_group,
+        age_group_min,
+        age_group_max,
+        icon,
+        isMilestone,
+        (SELECT COUNT(*) FROM child_activities WHERE activity_id = activities.id) as usage_count
+      FROM activities 
+      ${whereClause}
+      ORDER BY ${sortBy === "created_at" ? "id" : sortBy} DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const [activities] = await db.query(activitiesQuery, [
+      ...params,
+      parseInt(limit),
+      parseInt(offset),
+    ]);
+
+    console.log("✅ Activities fetched from DB:", activities.length);
+
+    res.json({
+      success: true,
+      data: activities,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    console.error("❌ Error fetching activities:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching activities",
+      error: error.message,
+    });
+  }
+};
+
+// Create new activity
+export const createActivity = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      category,
+      difficulty = "easy",
+      duration = "15-30 minutes",
+      age_group = "1-2 tahun",
+      age_group_min = 12,
+      age_group_max = 24,
+      icon = "🎯",
+      isMilestone = 0,
+      status = "published",
+    } = req.body;
+
+    console.log("➕ Create activity request:", {
+      title,
+      description,
+      category,
+      difficulty,
+      duration,
+      age_group,
+      isMilestone,
+      status,
+    });
+
+    // Validate required fields
+    if (!title || !description || !category) {
+      console.log("❌ Missing required fields");
+      return res.status(400).json({
+        success: false,
+        message: "Title, description, and category are required",
+      });
+    }
+
+    // Insert new activity
+    const insertQuery = `
+      INSERT INTO activities (
+        title, description, category, difficulty, duration,
+        age_group, age_group_min, age_group_max, icon, isMilestone
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const [insertResult] = await db.query(insertQuery, [
+      title,
+      description,
+      category,
+      difficulty,
+      duration,
+      age_group,
+      age_group_min,
+      age_group_max,
+      icon,
+      isMilestone,
+    ]);
+
+    console.log("✅ Insert result:", insertResult);
+
+    // Get the created activity
+    const [newActivityRows] = await db.query(
+      "SELECT * FROM activities WHERE id = ?",
+      [insertResult.insertId]
+    );
+
+    console.log("🎯 Created activity data:", newActivityRows[0]);
+
+    res.status(201).json({
+      success: true,
+      message: "Activity created successfully",
+      data: newActivityRows[0],
+    });
+  } catch (error) {
+    console.error("❌ Error creating activity:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error creating activity",
+      error: error.message,
+    });
+  }
+};
+
+// Update activity
+export const updateActivity = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      description,
+      category,
+      difficulty,
+      duration,
+      age_group,
+      age_group_min,
+      age_group_max,
+      icon,
+      isMilestone,
+    } = req.body;
+
+    console.log("🔧 Update activity request:", {
+      id,
+      title,
+      category,
+      difficulty,
+    });
+
+    // Check if activity exists
+    const [existingActivityRows] = await db.query(
+      "SELECT id FROM activities WHERE id = ?",
+      [id]
+    );
+
+    if (existingActivityRows.length === 0) {
+      console.log("❌ Activity not found:", id);
+      return res.status(404).json({
+        success: false,
+        message: "Activity not found",
+      });
+    }
+
+    // Validate required fields
+    if (!title || !description || !category) {
+      console.log("❌ Missing required fields");
+      return res.status(400).json({
+        success: false,
+        message: "Title, description, and category are required",
+      });
+    }
+
+    // Prepare update query
+    let updateFields = [];
+    let params = [];
+
+    updateFields.push("title = ?");
+    params.push(title);
+
+    updateFields.push("description = ?");
+    params.push(description);
+
+    updateFields.push("category = ?");
+    params.push(category);
+
+    if (difficulty !== undefined) {
+      updateFields.push("difficulty = ?");
+      params.push(difficulty);
+    }
+
+    if (duration !== undefined) {
+      updateFields.push("duration = ?");
+      params.push(duration);
+    }
+
+    if (age_group !== undefined) {
+      updateFields.push("age_group = ?");
+      params.push(age_group);
+    }
+
+    if (age_group_min !== undefined) {
+      updateFields.push("age_group_min = ?");
+      params.push(age_group_min);
+    }
+
+    if (age_group_max !== undefined) {
+      updateFields.push("age_group_max = ?");
+      params.push(age_group_max);
+    }
+
+    if (icon !== undefined) {
+      updateFields.push("icon = ?");
+      params.push(icon);
+    }
+
+    if (isMilestone !== undefined) {
+      updateFields.push("isMilestone = ?");
+      params.push(isMilestone);
+    }
+
+    params.push(id);
+
+    const updateQuery = `UPDATE activities SET ${updateFields.join(
+      ", "
+    )} WHERE id = ?`;
+
+    console.log("📝 Update query:", updateQuery);
+
+    const [updateResult] = await db.query(updateQuery, params);
+    console.log("✅ Update result:", updateResult);
+
+    // Get updated activity
+    const [updatedActivityRows] = await db.query(
+      "SELECT * FROM activities WHERE id = ?",
+      [id]
+    );
+
+    console.log("🎯 Updated activity data:", updatedActivityRows[0]);
+
+    res.json({
+      success: true,
+      message: "Activity updated successfully",
+      data: updatedActivityRows[0],
+    });
+  } catch (error) {
+    console.error("❌ Error updating activity:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating activity",
+      error: error.message,
+    });
+  }
+};
+
+// Delete activity
+export const deleteActivity = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log("🗑️ Delete activity request:", id);
+
+    // Check if activity exists
+    const [existingActivityRows] = await db.query(
+      "SELECT id FROM activities WHERE id = ?",
+      [id]
+    );
+
+    if (existingActivityRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Activity not found",
+      });
+    }
+
+    // Check if activity is being used by children
+    const [usageCheck] = await db.query(
+      "SELECT COUNT(*) as count FROM child_activities WHERE activity_id = ?",
+      [id]
+    );
+
+    if (usageCheck[0].count > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete activity. It is currently being used by ${usageCheck[0].count} children.`,
+      });
+    }
+
+    // Delete activity
+    const [deleteResult] = await db.query(
+      "DELETE FROM activities WHERE id = ?",
+      [id]
+    );
+
+    console.log("✅ Delete result:", deleteResult);
+
+    res.json({
+      success: true,
+      message: "Activity deleted successfully",
+    });
+  } catch (error) {
+    console.error("❌ Error deleting activity:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting activity",
+      error: error.message,
+    });
+  }
+};
+
+// Get activity statistics
+export const getActivityStats = async (req, res) => {
+  try {
+    console.log("📊 Getting activity statistics");
+
+    // Get total counts
+    const [totalCountResult] = await db.query(
+      "SELECT COUNT(*) as total FROM activities"
+    );
+    const [milestoneCountResult] = await db.query(
+      "SELECT COUNT(*) as milestones FROM activities WHERE isMilestone = 1"
+    );
+
+    // Get usage statistics
+    const [usageResult] = await db.query(`
+      SELECT 
+        a.id,
+        a.title,
+        COUNT(ca.id) as usage_count
+      FROM activities a
+      LEFT JOIN child_activities ca ON a.id = ca.activity_id
+      GROUP BY a.id, a.title
+      ORDER BY usage_count DESC
+      LIMIT 5
+    `);
+
+    const stats = {
+      total: totalCountResult[0].total,
+      published: totalCountResult[0].total, // Assuming all activities are "published"
+      draft: 0, // No draft concept in current schema
+      milestones: milestoneCountResult[0].milestones,
+      topActivities: usageResult,
+    };
+
+    console.log("📈 Activity stats:", stats);
+
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("❌ Error getting activity stats:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error getting activity statistics",
+      error: error.message,
+    });
+  }
+};

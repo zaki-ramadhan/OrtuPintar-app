@@ -277,16 +277,16 @@ function ContentFilters({ filters, onFilterChange, onSearch }) {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Filter
+            Status
           </label>
           <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
             value={filters.status || ""}
             onChange={(e) => handleFilterChange("status", e.target.value)}
           >
-            <option value="">All Activities</option>
-            <option value="milestone">Milestones Only</option>
-            <option value="regular">Regular Activities</option>
+            <option value="">All Status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
           </select>
         </div>
         <div>
@@ -312,12 +312,13 @@ function ContentFilters({ filters, onFilterChange, onSearch }) {
           </label>
           <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-            value={filters.sortBy || "id"}
+            value={filters.sortBy || "created_at"}
             onChange={(e) => handleFilterChange("sortBy", e.target.value)}
           >
-            <option value="id">Newest First</option>
+            <option value="created_at">Newest First</option>
             <option value="title">Title A-Z</option>
             <option value="category">Category</option>
+            <option value="updated_at">Recently Updated</option>
           </select>
         </div>
       </div>
@@ -480,6 +481,13 @@ function ContentList({
                 </p>
                 <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
                   <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                      activity.status
+                    )}`}
+                  >
+                    {activity.status}
+                  </span>
+                  <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getDifficultyColor(
                       activity.difficulty
                     )}`}
@@ -491,6 +499,8 @@ function ContentList({
                   <span>{activity.duration}</span>
                   <span>•</span>
                   <span>{activity.age_group}</span>
+                  <span>•</span>
+                  <span>Created {formatDate(activity.created_at)}</span>
                   {activity.usage_count !== undefined && (
                     <>
                       <span>•</span>
@@ -666,7 +676,7 @@ export default function ContentManagementTab({
     search: "",
     category: "",
     status: "",
-    sortBy: "id",
+    sortBy: "created_at",
   });
   const [pagination, setPagination] = useState({
     page: 1,

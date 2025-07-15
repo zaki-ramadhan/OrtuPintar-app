@@ -26,4 +26,11 @@ router.put("/users/:id", adminController.updateUser);
 router.delete("/users/:id", adminController.deleteUser);
 router.get("/users/export", adminController.exportUsers);
 
+// Activities management routes
+router.get("/activities", adminController.getAllActivitiesAdmin);
+router.post("/activities", adminController.createActivity);
+router.put("/activities/:id", adminController.updateActivity);
+router.delete("/activities/:id", adminController.deleteActivity);
+router.get("/activities/stats", adminController.getActivityStats);
+
 export default router;
