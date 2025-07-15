@@ -469,6 +469,14 @@ export const getAllActivitiesAdmin = async (req, res) => {
       params.push(category);
     }
 
+    if (status) {
+      if (status === "milestone") {
+        whereConditions.push("isMilestone = 1");
+      } else if (status === "regular") {
+        whereConditions.push("isMilestone = 0");
+      }
+    }
+
     const whereClause =
       whereConditions.length > 0
         ? `WHERE ${whereConditions.join(" AND ")}`
