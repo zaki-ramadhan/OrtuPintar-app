@@ -936,3 +936,62 @@ export const getActivityDifficulties = async (req, res) => {
     });
   }
 };
+
+// Migration: Fix age_group format from Indonesian to English
+export const migrateAgeGroupFormat = async (req, res) => {
+  try {
+    console.log("🔄 Starting age_group format migration...");
+
+    // Define mapping for Indonesian to English
+    const ageGroupMapping = {
+      "0-6 bulan": "0-6 months",
+      "6-12 bulan": "6-12 months",
+      "1-2 tahun": "1-2 years",
+      "2-3 tahun": "2-3 years",
+      "3-4 tahun": "3-4 years",
+      "4-5 tahun": "4-5 years",
+      "5-6 tahun": "5-6 years",
+    };
+
+    let updatedCount = 0;
+
+    // Update each mapping
+    for (const [indonesian, english] of Object.entries(ageGroupMapping)) {
+      const updateQuery = `
+        UPDATE activities 
+        SET age_group = ? 
+        WHERE age_group = ?
+      `;
+
+      const result = await db.query(updateQuery, [english, indonesian]);
+      const affected = result[0].affectedRows;
+
+      if (affected > 0) {
+        console.log(
+          `✅ Updated ${affected} activities: "${indonesian}" → "${english}"`
+        );
+        updatedCount += affected;
+      }
+    }
+
+    console.log(
+      `🎉 Migration completed! Total updated: ${updatedCount} activities`
+    );
+
+    res.json({
+      success: true,
+      message: "Age group format migration completed",
+      data: {
+        totalUpdated: updatedCount,
+        mapping: ageGroupMapping,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Migration error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Migration failed",
+      error: error.message,
+    });
+  }
+};

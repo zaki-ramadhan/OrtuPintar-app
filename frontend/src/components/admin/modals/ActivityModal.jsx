@@ -186,13 +186,13 @@ export default function ActivityModal({
   const isReadOnly = mode === "view";
 
   const ageRanges = [
-    { value: "0-6 bulan", min: 0, max: 6, label: "0-6 months" },
-    { value: "6-12 bulan", min: 6, max: 12, label: "6-12 months" },
-    { value: "1-2 tahun", min: 12, max: 24, label: "1-2 years" },
-    { value: "2-3 tahun", min: 24, max: 36, label: "2-3 years" },
-    { value: "3-4 tahun", min: 36, max: 48, label: "3-4 years" },
-    { value: "4-5 tahun", min: 48, max: 60, label: "4-5 years" },
-    { value: "5-6 tahun", min: 60, max: 72, label: "5-6 years" },
+    { value: "0-6 months", min: 0, max: 6, label: "0-6 months" },
+    { value: "6-12 months", min: 6, max: 12, label: "6-12 months" },
+    { value: "1-2 years", min: 12, max: 24, label: "1-2 years" },
+    { value: "2-3 years", min: 24, max: 36, label: "2-3 years" },
+    { value: "3-4 years", min: 36, max: 48, label: "3-4 years" },
+    { value: "4-5 years", min: 48, max: 60, label: "4-5 years" },
+    { value: "5-6 years", min: 60, max: 72, label: "5-6 years" },
   ];
 
   const durations = [

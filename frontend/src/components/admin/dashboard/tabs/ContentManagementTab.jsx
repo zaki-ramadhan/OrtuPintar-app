@@ -3,8 +3,11 @@ import axios from "axios";
 import ActivityModal from "../../modals/ActivityModal";
 import ConfirmationModal from "../../modals/ConfirmationModal";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 function ContentManagementHeader({ openContentModal, stats, onRefresh }) {
   const [isExporting, setIsExporting] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -14,6 +17,34 @@ function ContentManagementHeader({ openContentModal, stats, onRefresh }) {
     } catch (error) {
       console.error("Export error:", error);
       setIsExporting(false);
+    }
+  };
+
+  const handleMigrateAgeGroup = async () => {
+    setIsMigrating(true);
+    try {
+      const token = localStorage.getItem("adminToken");
+      const response = await axios.post(
+        `${API_URL}/admin/activities/migrate-age-group`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        alert(
+          `Migration completed! Updated ${response.data.data.totalUpdated} activities.`
+        );
+        onRefresh(); // Refresh the activities list
+      }
+    } catch (error) {
+      console.error("Migration error:", error);
+      alert("Migration failed. Please try again.");
+    } finally {
+      setIsMigrating(false);
     }
   };
 
@@ -46,6 +77,26 @@ function ContentManagementHeader({ openContentModal, stats, onRefresh }) {
             />
           </svg>
           Refresh
+        </button>
+        <button
+          onClick={handleMigrateAgeGroup}
+          disabled={isMigrating}
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center disabled:opacity-50"
+        >
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+            />
+          </svg>
+          {isMigrating ? "Migrating..." : "Fix Age Format"}
         </button>
         <button
           onClick={handleExport}

@@ -34,5 +34,9 @@ router.delete("/activities/:id", adminController.deleteActivity);
 router.get("/activities/stats", adminController.getActivityStats);
 router.get("/activities/categories", adminController.getActivityCategories);
 router.get("/activities/difficulties", adminController.getActivityDifficulties);
+router.post(
+  "/activities/migrate-age-group",
+  adminController.migrateAgeGroupFormat
+);
 
 export default router;
