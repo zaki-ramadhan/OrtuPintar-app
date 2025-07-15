@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
+import axios from "axios";
 import {
   dashboardData,
   getStatusColor,
@@ -37,28 +38,10 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false); // Track UserManagement modal state
-  const [notifications, setNotifications] = useState([
-    {
-      message: "New user registered: Sarah Johnson",
-      time: "2 minutes ago",
-      read: false,
-    },
-    {
-      message: "Milestone achieved by child Emma Chen",
-      time: "15 minutes ago",
-      read: false,
-    },
-    {
-      message: "Consultation booked with Dr. Smith",
-      time: "1 hour ago",
-      read: false,
-    },
-    {
-      message: "System maintenance completed",
-      time: "3 hours ago",
-      read: true,
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const {
     confirmModal,
@@ -77,6 +60,47 @@ export default function DashboardPage() {
   // Use admin session management
   useAdminSession();
 
+  // Fetch admin notifications
+  const fetchAdminNotifications = async () => {
+    try {
+      setNotificationsLoading(true);
+      const token = localStorage.getItem("adminToken");
+
+      if (!token) {
+        console.log("❌ No admin token found");
+        return;
+      }
+
+      console.log("📬 Fetching admin notifications...");
+
+      const response = await axios.get(
+        `${API_URL}/dashboard/admin-notifications`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache",
+          },
+        }
+      );
+
+      console.log("✅ Admin notifications response:", response.data);
+      setNotifications(response.data.notifications || []);
+    } catch (err) {
+      console.error("❌ Error fetching admin notifications:", err);
+      console.error("❌ Error response:", err.response?.data);
+
+      // Fallback to empty array if error
+      setNotifications([]);
+
+      if (err.response?.status === 401) {
+        console.log("🔐 Admin token expired, redirecting to login...");
+        navigate("/admin/login");
+      }
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Check if admin is logged in using helper function
     const adminData = getAdminData();
@@ -88,6 +112,9 @@ export default function DashboardPage() {
 
     setUser(adminData);
     setLoading(false);
+
+    // Fetch admin notifications after login verification
+    fetchAdminNotifications();
   }, [navigate]);
 
   // Add keyboard shortcut for logout (Ctrl+Shift+L)
@@ -111,13 +138,25 @@ export default function DashboardPage() {
     setLogoutModal(false);
   };
 
-  const onReadNotifications = () => {
-    setNotifications((prev) =>
-      prev.map((n) => ({
-        ...n,
-        read: true,
-      }))
-    );
+  const onReadNotifications = async () => {
+    try {
+      // Mark all notifications as read locally
+      setNotifications((prev) =>
+        prev.map((n) => ({
+          ...n,
+          read: true,
+        }))
+      );
+
+      console.log("📬 Marked all admin notifications as read");
+      toast.success("All notifications marked as read");
+
+      // Here you could add an API call to mark them as read on the server
+      // For now, we'll just update the local state
+    } catch (error) {
+      console.error("❌ Error marking notifications as read:", error);
+      toast.error("Failed to mark notifications as read");
+    }
   };
 
   // Handle UserManagement modal state change
@@ -167,6 +206,8 @@ export default function DashboardPage() {
         notifications={notifications}
         onReadNotifications={onReadNotifications}
         isModalOpen={isUserModalOpen}
+        notificationsLoading={notificationsLoading}
+        onRefreshNotifications={fetchAdminNotifications}
       />
       {/* Navigation Tabs */}
       <NavigationTabs

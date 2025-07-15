@@ -5,6 +5,7 @@ import {
   getRecentActivities,
   getAllDashboardData,
   getSystemHealthDetails,
+  getAdminNotifications,
 } from "../controllers/dashboardController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -24,5 +25,8 @@ router.get("/recent-users", verifyToken, getRecentUsers);
 
 // Get recent activities
 router.get("/recent-activities", verifyToken, getRecentActivities);
+
+// Get admin notifications
+router.get("/admin-notifications", verifyToken, getAdminNotifications);
 
 export default router;

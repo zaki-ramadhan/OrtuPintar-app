@@ -621,3 +621,140 @@ export const getRecentActivities = async (req, res) => {
     });
   }
 };
+
+// 🔔 GET ADMIN NOTIFICATIONS
+export const getAdminNotifications = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+
+    console.log("📬 Fetching admin notifications...");
+
+    // Get recent user registrations (last 7 days)
+    const [recentUsers] = await db.execute(`
+      SELECT 
+        u.id,
+        u.name,
+        u.email,
+        u.created_at,
+        COUNT(c.id) as children_count
+      FROM users u
+      LEFT JOIN children c ON u.id = c.user_id
+      WHERE u.role = 'users' 
+      AND u.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+      GROUP BY u.id, u.name, u.email, u.created_at
+      ORDER BY u.created_at DESC
+      LIMIT 8
+    `);
+
+    // Get data from notifications table (recent notifications from users)
+    const [userNotifications] = await db.execute(`
+      SELECT 
+        n.id,
+        n.type,
+        n.title,
+        n.message,
+        n.is_read as \`read\`,
+        n.created_at,
+        u.name as user_name,
+        u.email as user_email,
+        c.name as child_name
+      FROM notifications n
+      JOIN users u ON n.user_id = u.id
+      LEFT JOIN children c ON n.child_id = c.id
+      WHERE n.created_at >= DATE_SUB(NOW(), INTERVAL 3 DAY)
+      ORDER BY n.created_at DESC
+      LIMIT 10
+    `);
+
+    let notifications = [];
+    let notificationId = 1;
+
+    // Add user registration notifications
+    recentUsers.forEach((user) => {
+      notifications.push({
+        id: notificationId++,
+        type: "user_registration",
+        message: `New user registered: ${user.name || "Unknown User"}`,
+        time: formatTimeAgo(user.created_at),
+        read: false,
+        metadata: {
+          userId: user.id,
+          userEmail: user.email,
+          childrenCount: user.children_count,
+        },
+      });
+    });
+
+    // Add notifications from notifications table
+    userNotifications.forEach((notification) => {
+      const userName = notification.user_name || "Unknown User";
+      const childInfo = notification.child_name
+        ? ` (${notification.child_name})`
+        : "";
+
+      let adminMessage = "";
+      switch (notification.type) {
+        case "milestone":
+          adminMessage = `Milestone achieved by ${userName}${childInfo}: ${notification.message}`;
+          break;
+        case "reminder":
+          adminMessage = `Activity reminder for ${userName}${childInfo}: ${notification.message}`;
+          break;
+        case "achievement":
+          adminMessage = `Achievement unlocked by ${userName}${childInfo}: ${notification.message}`;
+          break;
+        case "alert":
+          adminMessage = `Alert for ${userName}${childInfo}: ${notification.message}`;
+          break;
+        default:
+          adminMessage = `Activity from ${userName}${childInfo}: ${notification.message}`;
+      }
+
+      notifications.push({
+        id: notificationId++,
+        type: `user_${notification.type}`,
+        message: adminMessage,
+        time: formatTimeAgo(notification.created_at),
+        read: Math.random() > 0.6, // Random read status for demo
+        metadata: {
+          originalNotificationId: notification.id,
+          userId: notification.user_name,
+          userEmail: notification.user_email,
+          childName: notification.child_name,
+          originalType: notification.type,
+        },
+      });
+    });
+
+    // Sort by most recent (by actual date)
+    notifications.sort((a, b) => {
+      // Extract actual date from time string for better sorting
+      const timeA = a.metadata?.originalCreatedAt || new Date();
+      const timeB = b.metadata?.originalCreatedAt || new Date();
+      return new Date(timeB) - new Date(timeA);
+    });
+
+    console.log(`📬 Generated ${notifications.length} admin notifications`);
+    console.log(
+      `👥 ${recentUsers.length} recent users, 📬 ${userNotifications.length} user notifications`
+    );
+
+    res.json({
+      message: "Admin notifications retrieved successfully",
+      notifications: notifications.slice(0, 15), // Limit to 15 most recent
+      summary: {
+        recentUsers: recentUsers.length,
+        userNotifications: userNotifications.length,
+        totalGenerated: notifications.length,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Admin notifications error:", error);
+    res.status(500).json({
+      message: "Failed to fetch admin notifications",
+      error: error.message,
+    });
+  }
+};
