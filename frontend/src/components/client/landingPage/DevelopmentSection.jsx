@@ -85,7 +85,7 @@ export default function DevelopmentSection() {
 									key={
 										index
 									}
-									className={`bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-t-4 border-${stage.color}-400`}
+									className={`bg-white rounded-3xl p-8 shadow-lg shadow-gray-300 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-t-4 border-${stage.color}-400`}
 								>
 									<div className="text-center mb-6">
 										<div className="text-4xl mb-3">

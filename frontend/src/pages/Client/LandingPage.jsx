@@ -10,7 +10,7 @@ import {
 	TestimonialsSection,
 	PricingSection,
 	FaqSection,
-	ExpertSupportSection,
+	ProfessionalSupportSection,
 	Footer
 } from "@/components/client/landingPage";
 
@@ -53,7 +53,7 @@ export default function LandingPage() {
 			<FaqSection />
 
 			{/* Expert Support Section - ADD ID HERE */}
-			{/* <ExpertSupportSection /> */}
+			{/* <ProfessionalSupportSection /> */}
 
 			{/* Footer */}
 			<Footer />

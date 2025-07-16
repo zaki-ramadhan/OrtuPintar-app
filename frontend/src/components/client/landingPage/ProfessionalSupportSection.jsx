@@ -1,9 +1,9 @@
 import { Link } from "react-router";
 
-export default function ExpertSupportSection() {
+export default function ProfessionalSupportSection() {
 	return (
 		<section
-			id="expert-support"
+			id="professional-support"
 			className="py-24 bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 relative overflow-hidden"
 		>
 			<div className="absolute inset-0 bg-black/10"></div>
@@ -41,7 +41,7 @@ export default function ExpertSupportSection() {
 						see
 						the
 						difference
-						expert
+						professional
 						guidance
 						can
 						make.

@@ -43,7 +43,7 @@ export default function TopBar() {
 		<header
 			className={`fixed w-full top-0 z-50 transition-all duration-300 ${
 				scrolled
-					? "bg-white/95 backdrop-blur-xl shadow-lg border-b border-gray-100"
+					? "bg-white/95 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-gray-100"
 					: "bg-white/90 backdrop-blur-sm"
 			}`}
 		>
@@ -202,8 +202,8 @@ export default function TopBar() {
 									id: "pricing",
 								},
 								{
-									name: "Expert Support",
-									id: "expert-support",
+									name: "Professional Support",
+									id: "professional-support",
 								},
 							].map(
 								(

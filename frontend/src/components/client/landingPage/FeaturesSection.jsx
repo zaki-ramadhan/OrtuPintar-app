@@ -23,7 +23,7 @@ export default function FeaturesSection() {
 						tools,
 						insights,
 						and
-						expert
+						intelligent
 						guidance
 						to
 						help
@@ -54,56 +54,23 @@ export default function FeaturesSection() {
 						{
 							icon: "📚",
 							title: "Learning Activities",
-							description: "Access curated activities and games designed by child development experts to support learning through play.",
+							description: "Access curated activities and games designed by child development specialists to support learning through play.",
 							color: "blue",
 							features: [
-								"Expert-designed activities",
+								"Professionally-designed activities",
 								"Age-based recommendations",
 								"Interactive games",
 							],
 						},
 						{
-							icon: "👩‍⚕️",
-							title: "Expert Guidance",
-							description: "Connect with pediatric specialists, child psychologists, and development experts for personalized advice.",
-							color: "purple",
-							features: [
-								"24/7 consultations",
-								"Licensed professionals",
-								"Personalized advice",
-							],
-						},
-						{
-							icon: "🧠",
-							title: "Smart Insights",
-							description: "Receive AI-powered insights and recommendations based on your child's unique development patterns.",
-							color: "orange",
-							features: [
-								"AI-powered analysis",
-								"Predictive insights",
-								"Custom recommendations",
-							],
-						},
-						{
-							icon: "👨‍👩‍👧‍👦",
-							title: "Family Connection",
-							description: "Share progress with family members and caregivers, creating a supportive network around your child's development.",
-							color: "rose",
-							features: [
-								"Multi-user access",
-								"Secure sharing",
-								"Family dashboard",
-							],
-						},
-						{
-							icon: "🔒",
-							title: "Secure & Private",
-							description: "Your child's data is protected with enterprise-grade security. Full privacy control with GDPR compliance.",
+							icon: "✨",
+							title: "Easy to Use",
+							description: "Simple and intuitive interface designed for busy parents. Track your child's progress with just a few taps.",
 							color: "indigo",
 							features: [
-								"Enterprise security",
-								"GDPR compliant",
-								"Privacy controls",
+								"User-friendly interface",
+								"Mobile responsive",
+								"Quick data entry",
 							],
 						},
 					].map(

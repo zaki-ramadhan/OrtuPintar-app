@@ -32,9 +32,9 @@ export default function Footer() {
 							children's
 							development
 							through
-							expert
-							guidance,
 							smart
+							guidance,
+							intelligent
 							tracking,
 							and
 							personalized

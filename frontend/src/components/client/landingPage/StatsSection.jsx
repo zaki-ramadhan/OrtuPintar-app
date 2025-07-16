@@ -3,7 +3,7 @@ export default function StatsSection() {
 		<section className="py-16 bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 relative overflow-hidden">
 			<div className="absolute inset-0 bg-black/10"></div>
 			<div className="container mx-auto px-6 lg:px-12 relative z-10">
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center text-white">
+				<div className="grid grid-cols-2 place-content-center lg:grid-cols-3 gap-8 text-center text-white">
 					{[
 						{
 							number: "10k+",
@@ -19,11 +19,6 @@ export default function StatsSection() {
 							number: "95%",
 							label: "Satisfaction Rate",
 							icon: "⭐",
-						},
-						{
-							number: "24/7",
-							label: "Expert Support",
-							icon: "🩺",
 						},
 					].map(
 						(

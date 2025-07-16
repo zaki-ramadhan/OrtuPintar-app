@@ -23,7 +23,7 @@ export default function PricingSection() {
 							All
 							plans
 							include
-							expert
+							professional
 							support
 							and
 							unlimited
@@ -58,7 +58,7 @@ export default function PricingSection() {
 									"Track up to 3 children",
 									"Advanced milestone tracking",
 									"500+ activities & games",
-									"Expert chat support",
+									"Professional chat support",
 									"Progress reports",
 									"Family sharing",
 									"Video consultations (2/month)",
@@ -76,7 +76,7 @@ export default function PricingSection() {
 									"Unlimited children",
 									"AI-powered insights",
 									"1000+ premium activities",
-									"24/7 expert support",
+									"24/7 professional support",
 									"Detailed analytics",
 									"Custom learning plans",
 									"Unlimited consultations",

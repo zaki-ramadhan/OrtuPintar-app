@@ -34,10 +34,10 @@ export default function FaqSection() {
 						},
 						{
 							question: "How does the milestone tracking work?",
-							answer: "Our milestone tracking uses evidence-based developmental markers from pediatric research. You simply log your observations, and our AI analyzes patterns to provide insights. If any concerns arise, we'll recommend consulting with our expert pediatricians.",
+							answer: "Our milestone tracking uses evidence-based developmental markers from pediatric research. You simply log your observations, and our AI analyzes patterns to provide insights. If any concerns arise, we'll recommend consulting with our professional pediatricians.",
 						},
 						{
-							question: "Are the experts real licensed professionals?",
+							question: "Are the professionals real licensed specialists?",
 							answer: "Yes! All our experts are licensed pediatricians, child psychologists, speech therapists, and developmental specialists. They hold valid certifications and have years of experience in child development.",
 						},
 						{
@@ -51,10 +51,6 @@ export default function FaqSection() {
 						{
 							question: "What if my child seems behind on milestones?",
 							answer: "Every child develops at their own pace. Our system accounts for normal variations. If we detect potential concerns, we'll connect you with appropriate specialists for personalized guidance and peace of mind.",
-						},
-						{
-							question: "Do you offer a money-back guarantee?",
-							answer: "Yes! We offer a 30-day money-back guarantee on all paid plans. If you're not completely satisfied, we'll refund your payment, no questions asked.",
 						},
 						{
 							question: "How often are new activities added?",

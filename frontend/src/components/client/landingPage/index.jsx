@@ -8,5 +8,5 @@ export { default as HowItWorksSection } from './HowItWorksSection';
 export { default as TestimonialsSection } from './TestimonialsSection';
 export { default as PricingSection } from './PricingSection';
 export { default as FaqSection } from './FaqSection';
-export { default as ExpertSupportSection } from './ExpertSupportSection';
+export { default as ProfessionalSupportSection } from './ProfessionalSupportSection';
 export { default as Footer } from './Footer';

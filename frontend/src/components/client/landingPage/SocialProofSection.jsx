@@ -10,7 +10,7 @@ export default function SocialProofSection() {
 							organizations
 							and
 							pediatric
-							experts
+							professionals
 						</p>
 					</div>
 					<div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center opacity-60">

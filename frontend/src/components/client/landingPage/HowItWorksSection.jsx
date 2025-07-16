@@ -43,7 +43,7 @@ export default function HowItWorksSection() {
 							{
 								step: "03",
 								title: "Get Guidance",
-								description: "Receive personalized activities, expert advice, and milestone predictions to support your child's optimal development.",
+								description: "Receive personalized activities, professional advice, and milestone predictions to support your child's optimal development.",
 								icon: "🎯",
 								color: "purple",
 							},
