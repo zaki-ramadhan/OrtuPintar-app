@@ -47,13 +47,13 @@ export default function LandingPage() {
 			<TestimonialsSection />
 
 			{/* Pricing Section - ADD ID HERE */}
-			<PricingSection />
+			{/* <PricingSection /> */}
 
 			{/* FAQ Section */}
 			<FaqSection />
 
 			{/* Expert Support Section - ADD ID HERE */}
-			<ExpertSupportSection />
+			{/* <ExpertSupportSection /> */}
 
 			{/* Footer */}
 			<Footer />

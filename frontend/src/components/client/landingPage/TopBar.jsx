@@ -87,10 +87,6 @@ export default function TopBar() {
 								id: "testimonials",
 							},
 							{
-								name: "Pricing",
-								id: "pricing",
-							},
-							{
 								name: "Expert Support",
 								id: "expert-support",
 							},
@@ -132,9 +128,7 @@ export default function TopBar() {
 							className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white px-6 py-2.5 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 flex items-center space-x-2"
 						>
 							<span>
-								Start
-								Free
-								Trial
+								Let's Get Started
 							</span>
 							<svg
 								className="w-4 h-4"

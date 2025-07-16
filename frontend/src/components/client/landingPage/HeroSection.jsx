@@ -107,9 +107,9 @@ export default function HeroSection() {
 								className="group bg-gradient-to-r from-emerald-500 to-blue-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-3"
 							>
 								<span className="text-lg">
-									Start
-									Free
-									Trial
+									Let's Get Started
+									
+									
 								</span>
 								<svg
 									className="w-5 h-5 group-hover:translate-x-1 transition-transform"
@@ -127,7 +127,7 @@ export default function HeroSection() {
 									/>
 								</svg>
 							</Link>
-							<button className="group bg-white/80 backdrop-blur text-gray-700 px-8 py-4 rounded-2xl font-semibold border border-gray-200 shadow-lg hover:shadow-xl hover:bg-white transition-all duration-300 flex items-center justify-center space-x-3">
+							{/* <button className="group bg-white/80 backdrop-blur text-gray-700 px-8 py-4 rounded-2xl font-semibold border border-gray-200 shadow-lg hover:shadow-xl hover:bg-white transition-all duration-300 flex items-center justify-center space-x-3">
 								<svg
 									className="w-5 h-5"
 									fill="none"
@@ -147,7 +147,7 @@ export default function HeroSection() {
 									Watch
 									Demo
 								</span>
-							</button>
+							</button> */}
 						</div>
 
 						<div className="flex flex-wrap items-center gap-8 pt-8">
