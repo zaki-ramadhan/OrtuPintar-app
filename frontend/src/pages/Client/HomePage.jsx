@@ -795,7 +795,7 @@ export default function HomePage() {
               onShowAll={handleShowAllReminders}
             />
             {/* Expert Support */}
-            <ExpertSupport />
+            {/* <ExpertSupport /> */}
             {/* Weekly Summary */}
             <WeeklySummary
               key={weeklyRefreshKey}

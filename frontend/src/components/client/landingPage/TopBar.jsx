@@ -86,10 +86,7 @@ export default function TopBar() {
 								name: "Testimonials",
 								id: "testimonials",
 							},
-							{
-								name: "Expert Support",
-								id: "expert-support",
-							},
+							
 						].map(
 							(
 								item,
