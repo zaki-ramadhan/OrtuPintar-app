@@ -4,9 +4,12 @@ export default function MilestoneOverview({
     completedMilestones = [],
     calculateAge
 }) {
+    // Ensure completedMilestones is always an array
+    const safeCompletedMilestones = Array.isArray(completedMilestones) ? completedMilestones : [];
+
     // Calculate statistics
     const totalMilestones = milestones.length;
-    const totalCompleted = completedMilestones.length;
+    const totalCompleted = safeCompletedMilestones.length;
     const completionRate = totalMilestones > 0 ? Math.round((totalCompleted / totalMilestones) * 100) : 0;
 
     // Calculate age-appropriate milestones
@@ -30,7 +33,7 @@ export default function MilestoneOverview({
         return minAge <= childAgeInYears + 1 && maxAge >= childAgeInYears - 1;
     });
 
-    const completedAgeAppropriate = completedMilestones.filter(completed => {
+    const completedAgeAppropriate = safeCompletedMilestones.filter(completed => {
         const milestone = milestones.find(m => m.id === completed.activity_id);
         if (!milestone) return false;
         const minAge = milestone.age_group_min || 0;
@@ -43,7 +46,7 @@ export default function MilestoneOverview({
         : 0;
 
     // Recent milestones (last 3)
-    const recentMilestones = completedMilestones
+    const recentMilestones = safeCompletedMilestones
         .sort((a, b) => new Date(b.achieved_at) - new Date(a.achieved_at))
         .slice(0, 3)
         .map(completed => {

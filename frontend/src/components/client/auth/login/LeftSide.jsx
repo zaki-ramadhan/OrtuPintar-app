@@ -71,10 +71,6 @@ export default function LeftSide() {
               text: "AI-powered milestone tracking",
             },
             {
-              icon: "👩‍⚕️",
-              text: "24/7 expert consultations",
-            },
-            {
               icon: "🎯",
               text: "Personalized activity recommendations",
             },

@@ -7,6 +7,8 @@ export default function MilestonesByAgeGroup({
     calculateAgeInYears,
     onStartMilestone
 }) {
+    // Ensure completedMilestones is always an array
+    const safeCompletedMilestones = Array.isArray(completedMilestones) ? completedMilestones : [];
     const [selectedAgeGroup, setSelectedAgeGroup] = useState("current");
     const [expandedGroup, setExpandedGroup] = useState(null);
 
@@ -17,7 +19,7 @@ export default function MilestonesByAgeGroup({
     const milestonesByAge = useMemo(() => {
         // Get completed milestone IDs for quick lookup
         const completedMilestoneIds = new Set(
-            completedMilestones.map(cm => cm.activity_id)
+            safeCompletedMilestones.map(cm => cm.activity_id)
         );
 
         const groups = {};
@@ -54,7 +56,7 @@ export default function MilestonesByAgeGroup({
         });
 
         return groups;
-    }, [milestones, completedMilestones, childAge]);
+    }, [milestones, safeCompletedMilestones, childAge]);
 
     // Filter groups based on selected age group
     const filteredGroups = useMemo(() => {

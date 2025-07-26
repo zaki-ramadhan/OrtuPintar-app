@@ -5,10 +5,12 @@ export default function CompletedMilestones({
     activities = [],
     onViewDetails
 }) {
+    // Ensure completedMilestones is always an array
+    const safeCompletedMilestones = Array.isArray(completedMilestones) ? completedMilestones : [];
     const [sortBy, setSortBy] = useState("recent"); // recent, category, alphabetical
 
     // Map completed milestones with activity details
-    const milestonesWithDetails = completedMilestones.map(completed => {
+    const milestonesWithDetails = safeCompletedMilestones.map(completed => {
         const activity = activities.find(a => a.id === completed.activity_id);
         return {
             ...completed,

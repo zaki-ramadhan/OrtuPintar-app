@@ -110,7 +110,7 @@ export default function LeftSide() {
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-blue-600">4.9★</div>
-          <div className="text-sm text-gray-500">App Store Rating</div>
+          <div className="text-sm text-gray-500">User Rating</div>
         </div>
         <div className="text-center">
           <div className="text-2xl font-bold text-purple-600">24/7</div>
