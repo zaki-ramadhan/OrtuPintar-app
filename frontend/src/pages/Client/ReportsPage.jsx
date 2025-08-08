@@ -590,6 +590,44 @@ export default function ReportsPage() {
 
   const realStats = calculateRealStats(currentChild);
 
+  // Helper function to format date and time from timestamp
+  const formatActivityDateTime = (activity) => {
+    // Use completed_at if available, otherwise use updated_at or started_at
+    const timestamp =
+      activity.completed_at || activity.updated_at || activity.started_at;
+
+    if (!timestamp) {
+      return { date: "Unknown date", time: "Unknown time" };
+    }
+
+    const date = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Format date
+    let formattedDate;
+    if (date.toDateString() === today.toDateString()) {
+      formattedDate = "Today";
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      formattedDate = "Yesterday";
+    } else {
+      formattedDate = date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    // Format time
+    const formattedTime = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    return { date: formattedDate, time: formattedTime };
+  };
+
   // Filter activities for Recent Activities (exclude cancelled)
   const filteredActivitiesForDisplay =
     activities.length > 0
@@ -605,6 +643,26 @@ export default function ReportsPage() {
             );
             return isCurrentChild && isNotCancelled;
           })
+          .map((activity) => {
+            // Transform activity data to include formatted date and time
+            const { date, time } = formatActivityDateTime(activity);
+
+            return {
+              ...activity,
+              date,
+              time,
+              // Map the child name (we need to get this from children array)
+              child: currentChild
+                ? currentChild.name
+                : activity.child_name || "Unknown",
+              // Ensure title exists
+              title:
+                activity.title ||
+                activity.activityTitle ||
+                activity.activity_title ||
+                "Unknown Activity",
+            };
+          })
           .sort((a, b) => {
             // Sort by updated_at in descending order (most recent first)
             return new Date(b.updated_at) - new Date(a.updated_at);
@@ -614,6 +672,20 @@ export default function ReportsPage() {
   console.log(
     "📊 Filtered activities for display (no cancelled):",
     filteredActivitiesForDisplay
+  );
+
+  console.log(
+    "📅 Sample activity date/time for verification:",
+    filteredActivitiesForDisplay.length > 0
+      ? {
+          id: filteredActivitiesForDisplay[0].id,
+          title: filteredActivitiesForDisplay[0].title,
+          date: filteredActivitiesForDisplay[0].date,
+          time: filteredActivitiesForDisplay[0].time,
+          child: filteredActivitiesForDisplay[0].child,
+          status: filteredActivitiesForDisplay[0].status,
+        }
+      : "No activities to display"
   );
 
   // Combine real stats with mock structure for other data
