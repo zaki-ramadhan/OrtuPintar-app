@@ -3,6 +3,8 @@ import AdminModal from "./AdminModal";
 import toast from "react-hot-toast";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function ActivityModal({
   isOpen,
   onClose,
@@ -45,10 +47,10 @@ export default function ActivityModal({
       };
 
       const [categoriesRes, difficultiesRes] = await Promise.all([
-        axios.get("http://localhost:3000/api/admin/activities/categories", {
+        axios.get(`${API_URL}/admin/activities/categories`, {
           headers,
         }),
-        axios.get("http://localhost:3000/api/admin/activities/difficulties", {
+        axios.get(`${API_URL}/admin/activities/difficulties`, {
           headers,
         }),
       ]);
