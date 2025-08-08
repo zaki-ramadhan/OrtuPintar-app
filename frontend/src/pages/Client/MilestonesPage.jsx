@@ -190,7 +190,7 @@ export default function MilestonesPage() {
     <div className="min-h-screen bg-gray-50">
       <HeaderClient />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
@@ -204,30 +204,30 @@ export default function MilestonesPage() {
         {/* Child Selector */}
         {children.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
               Select Child
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {children.map((child, index) => (
                 <button
                   key={child.id}
                   onClick={() => setActiveChild(index)}
-                  className={`flex items-center space-x-3 p-4 rounded-xl border-2 transition-all duration-200 w-full min-w-0 ${
+                  className={`flex items-center space-x-3 p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 w-full min-w-0 ${
                     activeChild === index
                       ? "border-emerald-400 bg-emerald-50 shadow-md"
                       : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                   }`}
                 >
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-100 to-blue-100 flex items-center justify-center text-2xl">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-emerald-100 to-blue-100 flex items-center justify-center text-xl sm:text-2xl">
                       {child.photoUrl || (child.gender === "P" ? "👧" : "👦")}
                     </div>
                   </div>
                   <div className="text-left min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 truncate">
+                    <p className="font-medium text-gray-900 truncate text-sm sm:text-base">
                       {child.name}
                     </p>
-                    <p className="text-sm text-gray-500 truncate">
+                    <p className="text-xs sm:text-sm text-gray-500 truncate">
                       {calculateAge(child.birthDate)}
                     </p>
                   </div>
@@ -246,9 +246,9 @@ export default function MilestonesPage() {
               calculateAge={calculateAge}
             />{" "}
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-4 sm:mt-6 lg:mt-8">
               {/* Left Column - Completed Milestones */}
-              <div className="lg:col-span-1 order-2 lg:order-1">
+              <div className="lg:col-span-1 order-1 lg:order-1">
                 <CompletedMilestones
                   completedMilestones={completedMilestones}
                   milestones={milestones}
@@ -257,7 +257,7 @@ export default function MilestonesPage() {
               </div>
 
               {/* Right Column - Milestones by Age Group */}
-              <div className="lg:col-span-2 order-1 lg:order-2">
+              <div className="lg:col-span-2 order-2 lg:order-2">
                 <MilestonesByAgeGroup
                   milestones={milestones}
                   completedMilestones={completedMilestones}
