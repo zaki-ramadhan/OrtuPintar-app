@@ -107,6 +107,17 @@ export const getChildMilestones = async (req, res) => {
     for (let i = 0; i < completedMilestones.length; i++) {
       const milestone = completedMilestones[i];
 
+      // Extract age range from age_group string (e.g., "2-3 years", "3-5 years")
+      const ageGroup = milestone.age_group || "";
+      const ageMatch = ageGroup.match(/(\d+)-(\d+)/);
+      let ageGroupMin = null;
+      let ageGroupMax = null;
+
+      if (ageMatch) {
+        ageGroupMin = parseInt(ageMatch[1]);
+        ageGroupMax = parseInt(ageMatch[2]);
+      }
+
       const mappedMilestone = {
         id: milestone.id,
         // Ensure both field versions exist
@@ -122,6 +133,10 @@ export const getChildMilestones = async (req, res) => {
         difficulty: milestone.difficulty || "medium",
         notes: milestone.notes || "",
         duration: milestone.duration || 0,
+        // Age range fields
+        age_group: ageGroup,
+        age_group_min: ageGroupMin,
+        age_group_max: ageGroupMax,
       };
 
       completed.push(mappedMilestone);
@@ -145,6 +160,17 @@ export const getChildMilestones = async (req, res) => {
       );
       if (isCompleted) return;
 
+      // Extract age range from age_group string for potential milestones too
+      const ageGroup = activity.age_group || "";
+      const ageMatch = ageGroup.match(/(\d+)-(\d+)/);
+      let ageGroupMin = null;
+      let ageGroupMax = null;
+
+      if (ageMatch) {
+        ageGroupMin = parseInt(ageMatch[1]);
+        ageGroupMax = parseInt(ageMatch[2]);
+      }
+
       if (activity.status === "pending" || activity.status === "started") {
         inProgress.push({
           id: activity.id,
@@ -155,7 +181,9 @@ export const getChildMilestones = async (req, res) => {
           difficulty: activity.difficulty,
           status: activity.status,
           description: activity.description,
-          age_group: activity.age_group,
+          age_group: ageGroup,
+          age_group_min: ageGroupMin,
+          age_group_max: ageGroupMax,
         });
       } else if (!activity.status) {
         potential.push({
@@ -166,7 +194,9 @@ export const getChildMilestones = async (req, res) => {
           icon: activity.icon,
           difficulty: activity.difficulty,
           description: activity.description,
-          age_group: activity.age_group,
+          age_group: ageGroup,
+          age_group_min: ageGroupMin,
+          age_group_max: ageGroupMax,
         });
       }
     });
