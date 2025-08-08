@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import toast from "react-hot-toast";
 import LogoutModal from "./homePage/LogoutModal";
 
@@ -8,6 +8,10 @@ export default function HeaderClient() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if current page is home page
+  const isHomePage = location.pathname === "/home" || location.pathname === "/";
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user"));
@@ -53,24 +57,49 @@ export default function HeaderClient() {
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
             </div> */}
 
-            <Link
+            {/* Back to Home - Only show when NOT on home page */}
+            {!isHomePage && (
+              <Link
                 to="/home"
                 className="text-gray-500 hover:text-gray-900 p-2 md:px-3 md:py-2 rounded-lg flex items-center space-x-1"
                 title="Back to Home"
               >
                 {/* Home icon only on mobile */}
                 <span className="lg:hidden p-2.5 border border-gray-300 rounded-xl hover:border-gray-500 hover:bg-gray-100 transition-all">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    />
                   </svg>
                 </span>
 
                 {/* Arrow + Text on desktop */}
-                <svg className="w-4 h-4 md:w-5 md:h-5 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <svg
+                  className="w-4 h-4 md:w-5 md:h-5 hidden lg:block"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
                 </svg>
-                <span className="hidden lg:block mr-4 text-sm font-medium">Back to Home</span>
+                <span className="hidden lg:block mr-4 text-sm font-medium">
+                  Back to Home
+                </span>
               </Link>
+            )}
 
             {/* User Menu */}
             <div className="relative -ml-3.5">
