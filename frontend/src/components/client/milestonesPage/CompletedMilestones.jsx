@@ -25,7 +25,7 @@ export default function CompletedMilestones({
       category: completed.category || "General",
       icon: completed.icon || "🎯",
       difficulty: completed.difficulty || "Beginner",
-      duration: completed.duration || "N/A",
+      duration: completed.duration || 0,
       age_group: completed.age_group || "All Ages",
     };
   });
@@ -215,7 +215,7 @@ function MilestoneCard({
           </div>
           <p className="text-sm text-gray-600 mt-1">
             {formatTimeAgo(milestone.achievedAt || milestone.achieved_at)} •{" "}
-            {milestone.duration}
+            {milestone.duration ? `${milestone.duration} mins` : "N/A"}
           </p>
           {milestone.description && (
             <p className="text-sm text-gray-500 mt-1 line-clamp-2">

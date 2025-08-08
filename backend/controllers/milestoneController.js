@@ -121,6 +121,7 @@ export const getChildMilestones = async (req, res) => {
         icon: milestone.icon || "🎯",
         difficulty: milestone.difficulty || "medium",
         notes: milestone.notes || "",
+        duration: milestone.duration || 0,
       };
 
       completed.push(mappedMilestone);
