@@ -241,3 +241,125 @@ export const changePassword = async (req, res) => {
     });
   }
 };
+
+export const deleteAccount = async (req, res) => {
+  try {
+    console.log("🗑️ Delete Account Request:");
+    console.log("User ID:", req.user?.id);
+
+    const userId = req.user.id;
+
+    // Verifikasi user exists
+    const [user] = await db.query(
+      "SELECT id, name, email FROM users WHERE id = ?",
+      [userId]
+    );
+
+    if (user.length === 0) {
+      console.log("❌ User not found with ID:", userId);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    console.log("✅ User found, starting deletion process...");
+    console.log(
+      "👤 Deleting account for:",
+      user[0].name,
+      "(" + user[0].email + ")"
+    );
+
+    try {
+      // 1. Delete child activities (milestone progress, activities completed by children)
+      const [children] = await db.query(
+        "SELECT id FROM children WHERE user_id = ?",
+        [userId]
+      );
+
+      if (children.length > 0) {
+        const childIds = children.map((child) => child.id);
+        console.log(
+          `📊 Found ${children.length} children, deleting their activities...`
+        );
+
+        // Delete child activities
+        if (childIds.length > 0) {
+          await db.query(
+            `DELETE FROM child_activities WHERE child_id IN (${childIds
+              .map(() => "?")
+              .join(",")})`,
+            childIds
+          );
+          console.log("✅ Child activities deleted");
+        }
+
+        // Delete milestone progress
+        try {
+          if (childIds.length > 0) {
+            await db.query(
+              `DELETE FROM milestone_progress WHERE child_id IN (${childIds
+                .map(() => "?")
+                .join(",")})`,
+              childIds
+            );
+            console.log("✅ Milestone progress deleted");
+          }
+        } catch (milestoneErr) {
+          console.log(
+            "⚠️ Milestone progress table might not exist:",
+            milestoneErr.message
+          );
+        }
+      }
+
+      // 2. Delete children
+      await db.query("DELETE FROM children WHERE user_id = ?", [userId]);
+      console.log("✅ Children deleted");
+
+      // 3. Delete user notifications (if exists)
+      try {
+        await db.query("DELETE FROM notifications WHERE user_id = ?", [userId]);
+        console.log("✅ Notifications deleted");
+      } catch (notifErr) {
+        console.log(
+          "⚠️ Notifications table might not exist or empty:",
+          notifErr.message
+        );
+      }
+
+      // 4. Delete any user preferences/settings (if exists)
+      try {
+        await db.query("DELETE FROM user_preferences WHERE user_id = ?", [
+          userId,
+        ]);
+        console.log("✅ User preferences deleted");
+      } catch (prefErr) {
+        console.log(
+          "⚠️ User preferences table might not exist:",
+          prefErr.message
+        );
+      }
+
+      // 5. Finally delete the user account
+      await db.query("DELETE FROM users WHERE id = ?", [userId]);
+      console.log("✅ User account deleted");
+
+      console.log("✅ Account deletion completed successfully");
+
+      res.json({
+        message: "Account deleted successfully",
+        deletedUser: {
+          name: user[0].name,
+          email: user[0].email,
+        },
+      });
+    } catch (deletionError) {
+      console.error("❌ Deletion process failed:", deletionError);
+      throw deletionError;
+    }
+  } catch (err) {
+    console.error("❌ Delete Account Error:", err);
+    res.status(500).json({
+      message: "Error deleting account",
+      error: err.message,
+    });
+  }
+};

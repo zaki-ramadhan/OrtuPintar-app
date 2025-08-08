@@ -5,6 +5,7 @@ import {
   getUserProfile,
   updateUserProfile,
   changePassword,
+  deleteAccount,
 } from "../controllers/userController.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -14,5 +15,6 @@ router.get("/", getAllUsers);
 router.get("/profile", verifyToken, getUserProfile);
 router.put("/profile", verifyToken, updateUserProfile);
 router.put("/change-password", verifyToken, changePassword);
+router.delete("/delete-account", verifyToken, deleteAccount);
 
 export default router;
