@@ -244,7 +244,7 @@ export default function ReportsPage() {
         console.log("✅ Activities state updated:", response.data.activities);
         console.log(`📊 Total activities: ${response.data.activities.length}`);
 
-        // Log activity status breakdown
+        // Log activity status breakdown (including cancelled for debugging)
         const completed = response.data.activities.filter(
           (a) => a.status === "completed"
         ).length;
@@ -254,9 +254,12 @@ export default function ReportsPage() {
         const inProgress = response.data.activities.filter(
           (a) => a.status === "in_progress"
         ).length;
+        const pending = response.data.activities.filter(
+          (a) => a.status === "pending"
+        ).length;
 
         console.log(
-          `📈 Activity breakdown - Completed: ${completed}, Cancelled: ${cancelled}, In Progress: ${inProgress}`
+          `📈 Activity breakdown - Completed: ${completed}, Cancelled: ${cancelled}, In Progress: ${inProgress}, Pending: ${pending}`
         );
       } else {
         console.log("⚠️ No activities in response or invalid format");
@@ -384,9 +387,12 @@ export default function ReportsPage() {
       return 0;
     }
 
-    // Get only completed activities with valid completion dates
+    // Get only completed activities with valid completion dates (exclude cancelled)
     const completedActivities = childActivities.filter(
-      (activity) => activity.status === "completed" && activity.completed_at
+      (activity) =>
+        activity.status === "completed" &&
+        activity.completed_at &&
+        activity.status !== "cancelled"
     );
 
     if (completedActivities.length === 0) {
@@ -493,11 +499,16 @@ export default function ReportsPage() {
       };
     }
 
-    // Filter activities for the selected child only
+    // Filter activities for the selected child only and exclude cancelled activities
     const childActivities = activities.filter(
-      (activity) => activity.child_id === selectedChild.id
+      (activity) =>
+        activity.child_id === selectedChild.id &&
+        activity.status !== "cancelled"
     );
-    console.log(`🔍 Activities for ${selectedChild.name}:`, childActivities);
+    console.log(
+      `🔍 Active (non-cancelled) activities for ${selectedChild.name}:`,
+      childActivities
+    );
 
     // Calculate stats from this child's activities only
     const totalActivities = childActivities.length || 0;
@@ -534,10 +545,10 @@ export default function ReportsPage() {
       activeStreak = calculateRealDayStreak(childActivities);
     }
 
-    // Get last activity time for this child
+    // Get last activity time for this child (exclude cancelled activities)
     let lastActivity = "No activity yet";
     if (childActivities.length > 0) {
-      // Sort this child's activities by updated_at and get the most recent
+      // Sort this child's non-cancelled activities by updated_at and get the most recent
       const sortedActivities = [...childActivities].sort(
         (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
       );
@@ -579,18 +590,38 @@ export default function ReportsPage() {
 
   const realStats = calculateRealStats(currentChild);
 
+  // Filter activities for Recent Activities (exclude cancelled)
+  const filteredActivitiesForDisplay =
+    activities.length > 0
+      ? activities
+          .filter((activity) => {
+            // Filter out cancelled activities and only show for current child
+            const isCurrentChild = currentChild
+              ? activity.child_id === currentChild.id
+              : true;
+            const isNotCancelled = activity.status !== "cancelled";
+            console.log(
+              `🔍 Activity ${activity.id}: child_match=${isCurrentChild}, not_cancelled=${isNotCancelled}, status=${activity.status}`
+            );
+            return isCurrentChild && isNotCancelled;
+          })
+          .sort((a, b) => {
+            // Sort by updated_at in descending order (most recent first)
+            return new Date(b.updated_at) - new Date(a.updated_at);
+          })
+      : mockReportData.recentActivities;
+
+  console.log(
+    "📊 Filtered activities for display (no cancelled):",
+    filteredActivitiesForDisplay
+  );
+
   // Combine real stats with mock structure for other data
   const dynamicReportData = {
     overview: realStats,
     weeklyProgress: mockReportData.weeklyProgress, // Keep mock for now
     categories: mockReportData.categories, // Keep mock for now
-    recentActivities:
-      activities.length > 0
-        ? activities.filter((activity) =>
-            currentChild ? activity.child_id === currentChild.id : true
-          )
-        : // Removed .slice(0, 5) - let RecentActivities component handle pagination
-          mockReportData.recentActivities, // Filter activities for current child
+    recentActivities: filteredActivitiesForDisplay,
   };
   const getProgressPercentage = (completed, total) => {
     return Math.round((completed / total) * 100);

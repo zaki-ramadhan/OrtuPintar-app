@@ -91,6 +91,8 @@ export default function RecentActivities({ activities, openModal }) {
                       ? "bg-green-100 text-green-800"
                       : activity.status === "in_progress"
                       ? "bg-blue-100 text-blue-800"
+                      : activity.status === "cancelled"
+                      ? "bg-red-100 text-red-800"
                       : "bg-orange-100 text-orange-800"
                   }`}
                 >
@@ -98,6 +100,8 @@ export default function RecentActivities({ activities, openModal }) {
                     ? "Completed"
                     : activity.status === "in_progress"
                     ? "In Progress"
+                    : activity.status === "cancelled"
+                    ? "Cancelled"
                     : "Pending"}
                 </div>
               </div>
